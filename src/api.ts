@@ -1,4 +1,5 @@
 export type CourseType = 'private' | 'monthly'
+export type OrderType = CourseType | 'package'
 export type PaymentMethod =
   | '微信'
   | '支付宝'
@@ -13,7 +14,8 @@ export type Order = {
   customer: string
   phone: string
   courseName: string
-  courseType: CourseType
+  courseType: OrderType
+  items?: PackageItem[]
   sessions: number | null
   gifts: number
   amount: number
@@ -27,6 +29,17 @@ export type Order = {
   validTo: string | null
   startDate: string | null
   endDate: string | null
+}
+
+export type PackageItem = {
+  itemId?: string
+  courseType: CourseType
+  courseName: string
+  amount: number
+  sessions: number | null
+  gifts: number
+  startDate: string | null
+  endDate: string
 }
 
 export type Attendance = {
@@ -71,7 +84,8 @@ export type CreateOrder = {
   customer: string
   phone: string
   courseName: string
-  courseType: CourseType
+  courseType: OrderType
+  items?: PackageItem[]
   sessions: number | null
   gifts: number
   amount: number
@@ -135,7 +149,7 @@ export async function getOrders() {
 export async function exportOrders(filters: {
   startMonth: string
   endMonth: string
-  courseType: 'all' | CourseType
+  courseType: 'all' | OrderType
   search: string
 }) {
   const params = new URLSearchParams()

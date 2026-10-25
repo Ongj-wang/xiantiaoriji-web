@@ -9,6 +9,8 @@ import {
   type AttendanceResult,
   type CourseType,
   type Order,
+  type OrderType,
+  type PackageItem,
   type PaymentMethod,
   type Report,
 } from './api'
@@ -46,7 +48,7 @@ export default defineComponent({
     const activePage = ref<Page>('overview')
     const showOrderForm = ref(false)
     const orderSearch = ref('')
-    const orderTypeFilter = ref<'all' | CourseType>('all')
+    const orderTypeFilter = ref<'all' | OrderType>('all')
     const orderStartMonth = ref('')
     const orderEndMonth = ref('')
     const reportStartDate = ref(`${new Date().getFullYear()}-01-01`)
@@ -68,7 +70,7 @@ export default defineComponent({
       customer: '',
       phone: '',
       courseName: '',
-      courseType: 'private' as CourseType,
+      courseType: 'private' as OrderType,
       sessions: 10,
       gifts: 0,
       amount: 0,
@@ -80,6 +82,15 @@ export default defineComponent({
       orderDate: today,
       startDate: today,
       endDate: today,
+      packageItems: [{
+        courseType: 'private' as CourseType,
+        courseName: '',
+        amount: 0,
+        sessions: 10,
+        gifts: 0,
+        startDate: null,
+        endDate: today,
+      }] as PackageItem[],
     })
 
     const filteredOrders = computed(() => {
@@ -94,7 +105,8 @@ export default defineComponent({
         .filter((order) => {
           if (!query) return true
           return [order.orderNo, order.customer, order.phone, order.courseName]
-            .some((value) => value.toLowerCase().includes(query))
+            .some((value) => value.toLowerCase().includes(query)) ||
+            order.items?.some((item) => item.courseName.toLowerCase().includes(query))
         })
         .sort((a, b) => b.orderDate.localeCompare(a.orderDate))
     })
@@ -102,9 +114,24 @@ export default defineComponent({
     const summaryRows = computed(() => report.value?.summaryRows ?? [])
     const reportAttendances = computed(() => report.value?.attendances ?? [])
     const metrics = computed(() => report.value)
+    const packageTotal = computed(() => Number(orderDraft.value.packageItems
+      .reduce((total, item) => total + (Number.isFinite(item.amount) ? item.amount : 0), 0)
+      .toFixed(2)))
 
     function formatMoney(amount: number) {
       return currency.format(amount)
+    }
+
+    function addPackageItem() {
+      orderDraft.value.packageItems.push({
+        courseType: 'private',
+        courseName: '',
+        amount: 0,
+        sessions: 10,
+        gifts: 0,
+        startDate: null,
+        endDate: today,
+      })
     }
 
     async function loadOrders() {
@@ -218,13 +245,42 @@ export default defineComponent({
       const customer = draft.customer.trim()
       const phone = draft.phone.trim()
       const courseName = draft.courseName.trim()
-      if (!customer || !phone || !courseName || draft.amount <= 0) {
-        orderFormError.value = '请完整填写客户、手机号、课程项目及大于 0 的销售金额。'
+      const orderAmount = draft.courseType === 'package' ? packageTotal.value : draft.amount
+      if (!customer || !phone || !courseName || orderAmount <= 0) {
+        orderFormError.value = '请完整填写客户、手机号、课程项目及大于 0 的订单总金额。'
         return
       }
       if (draft.courseType === 'private' && (!Number.isInteger(draft.sessions) || draft.sessions < 1)) {
         orderFormError.value = '私教课时数需填写大于 0 的整数。'
         return
+      }
+      if (draft.courseType === 'package') {
+        if (!draft.packageItems.length) {
+          orderFormError.value = '套餐至少需要添加一项课程。'
+          return
+        }
+        for (const [index, item] of draft.packageItems.entries()) {
+          if (!item.courseName.trim()) {
+            orderFormError.value = `请填写套餐第 ${index + 1} 项课程名称。`
+            return
+          }
+          if (!Number.isFinite(item.amount) || item.amount < 0 || Math.round(item.amount * 100) / 100 !== item.amount) {
+            orderFormError.value = `套餐第 ${index + 1} 项课程金额需为不小于 0 的金额，最多保留两位小数。`
+            return
+          }
+          if (item.courseType === 'private' && (!Number.isInteger(item.sessions) || !item.sessions || item.sessions < 1)) {
+            orderFormError.value = `套餐第 ${index + 1} 项私教课时需为大于 0 的整数。`
+            return
+          }
+          if (!Number.isInteger(item.gifts) || item.gifts < 0) {
+            orderFormError.value = `套餐第 ${index + 1} 项赠送课时需为 0 或正整数。`
+            return
+          }
+          if (!item.endDate || (item.courseType === 'monthly' && (!item.startDate || item.endDate < item.startDate))) {
+            orderFormError.value = `请检查套餐第 ${index + 1} 项课程日期。`
+            return
+          }
+        }
       }
       if (
         draft.courseType === 'monthly' &&
@@ -254,7 +310,14 @@ export default defineComponent({
           courseType: draft.courseType,
           sessions: draft.courseType === 'private' ? Number(draft.sessions) : null,
           gifts: draft.courseType === 'private' ? Number(draft.gifts) : 0,
-          amount: Number(draft.amount),
+          items: draft.courseType === 'package' ? draft.packageItems.map((item) => ({
+            ...item,
+            courseName: item.courseName.trim(),
+            amount: Number(item.amount),
+            sessions: item.courseType === 'private' ? Number(item.sessions) : null,
+            gifts: item.courseType === 'private' ? Number(item.gifts) : 0,
+          })) : undefined,
+          amount: orderAmount,
           payment: draft.payment,
           source: draft.source,
           salesperson: draft.salesperson.trim(),
@@ -262,7 +325,7 @@ export default defineComponent({
           isNewMember: draft.isNewMember,
           orderDate: draft.orderDate,
           startDate: draft.courseType === 'monthly' ? draft.startDate : null,
-          endDate: draft.endDate,
+          endDate: draft.courseType === 'monthly' || draft.courseType === 'private' ? draft.endDate : null,
         })
         orders.value.unshift(createdOrder)
         showOrderForm.value = false
@@ -282,6 +345,15 @@ export default defineComponent({
           orderDate: today,
           startDate: today,
           endDate: today,
+          packageItems: [{
+            courseType: 'private',
+            courseName: '',
+            amount: 0,
+            sessions: 10,
+            gifts: 0,
+            startDate: null,
+            endDate: today,
+          }],
         }
         apiError.value = ''
         await loadReport()
@@ -479,7 +551,7 @@ export default defineComponent({
                       <div class="table-wrap">
                         <table><thead><tr><th>客户</th><th>课程项目</th><th>类型</th><th>销售金额</th><th>登记日期</th></tr></thead>
                           <tbody>{[...orders.value].sort((a, b) => b.orderDate.localeCompare(a.orderDate)).slice(0, 5).map((order) => (
-                            <tr key={order.orderNo}><td><strong class="customer-name">{order.customer}</strong><small class="sub-cell">{order.phone}</small></td><td>{order.courseName}</td><td><span class={['type-tag', order.courseType]}>{order.courseType === 'private' ? '定制私教' : '月卡课程'}</span></td><td class="amount-cell">{formatMoney(order.amount)}</td><td>{order.orderDate}</td></tr>
+                            <tr key={order.orderNo}><td><strong class="customer-name">{order.customer}</strong><small class="sub-cell">{order.phone}</small></td><td>{order.courseName}</td><td><span class={['type-tag', order.courseType]}>{order.courseType === 'private' ? '定制私教' : order.courseType === 'monthly' ? '月卡课程' : '套餐'}</span></td><td class="amount-cell">{formatMoney(order.amount)}</td><td>{order.orderDate}</td></tr>
                           ))}</tbody>
                         </table>
                       </div>
@@ -510,7 +582,7 @@ export default defineComponent({
                     <div class="list-controls">
                       <label class="search-box"><span>⌕</span><input value={orderSearch.value} onInput={(event) => { orderSearch.value = (event.target as HTMLInputElement).value }} placeholder="搜索客户、手机号或订单号" /></label>
                       <select aria-label="按课程类型筛选" value={orderTypeFilter.value} onChange={(event) => { orderTypeFilter.value = (event.target as HTMLSelectElement).value as typeof orderTypeFilter.value }}>
-                        <option value="all">全部课程</option><option value="private">定制私教</option><option value="monthly">月卡课程</option>
+                        <option value="all">全部课程</option><option value="private">定制私教</option><option value="monthly">月卡课程</option><option value="package">套餐</option>
                       </select>
                       <label class="month-filter"><span>起始月</span><input type="month" value={orderStartMonth.value} max={orderEndMonth.value || undefined} onChange={(event) => { orderStartMonth.value = (event.target as HTMLInputElement).value }} /></label>
                       <label class="month-filter"><span>结束月</span><input type="month" value={orderEndMonth.value} min={orderStartMonth.value || undefined} onChange={(event) => { orderEndMonth.value = (event.target as HTMLInputElement).value }} /></label>
@@ -523,8 +595,8 @@ export default defineComponent({
                         <tbody>{filteredOrders.value.map((order) => (
                           <tr key={order.orderNo}>
                             <td><strong class="order-number">{order.orderNo}</strong><strong class="customer-name">{order.customer}</strong><small class="sub-cell">{order.phone}</small></td>
-                            <td><span class={['type-tag', order.courseType]}>{order.courseType === 'private' ? '定制私教' : '月卡课程'}</span><strong class="course-cell">{order.courseName}</strong></td>
-                            <td>{order.courseType === 'private' ? <><strong>{order.sessions} 次</strong><small class="sub-cell">赠送 {order.gifts} 次</small><small class="sub-cell">有效至 {order.endDate ?? '—'}</small></> : <><strong>有效期不限次</strong><small class="sub-cell">{order.startDate ?? order.validFrom} 至 {order.endDate ?? order.validTo}</small></>}</td>
+                            <td><span class={['type-tag', order.courseType]}>{order.courseType === 'private' ? '定制私教' : order.courseType === 'monthly' ? '月卡课程' : '套餐'}</span><strong class="course-cell">{order.courseName}</strong></td>
+                            <td>{order.courseType === 'private' ? <><strong>{order.sessions} 次</strong><small class="sub-cell">赠送 {order.gifts} 次</small><small class="sub-cell">有效至 {order.endDate ?? '—'}</small></> : order.courseType === 'monthly' ? <><strong>有效期不限次</strong><small class="sub-cell">{order.startDate ?? order.validFrom} 至 {order.endDate ?? order.validTo}</small></> : <><strong>{order.items?.length ?? 0} 项课程</strong>{order.items?.map((item, index) => <small class="sub-cell" key={`${order.orderNo}-item-${index}`}>{item.courseName} · {formatMoney(item.amount)} · {item.courseType === 'private' ? `私教 ${item.sessions} 次` : `月卡 ${item.startDate} 至 ${item.endDate}`}</small>)}</>}</td>
                             <td class="amount-cell">{formatMoney(order.amount)}</td>
                             <td><strong>{order.payment}</strong><small class="sub-cell">{order.source}</small></td>
                             <td><strong>{order.salesperson || '—'}</strong><small class="sub-cell">{order.isNewMember ? '新会员' : '老会员'}</small><small class="sub-cell">{order.remark || '无备注'}</small></td>
@@ -618,18 +690,45 @@ export default defineComponent({
                 <div class="form-grid">
                   <label class="field"><span>客户姓名 <b>*</b></span><input required maxlength={40} value={orderDraft.value.customer} onInput={(event) => { orderDraft.value.customer = (event.target as HTMLInputElement).value }} placeholder="请输入客户姓名" /></label>
                   <label class="field"><span>手机号码 <b>*</b></span><input required type="tel" maxlength={20} value={orderDraft.value.phone} onInput={(event) => { orderDraft.value.phone = (event.target as HTMLInputElement).value }} placeholder="请输入联系电话" /></label>
-                  <label class="field"><span>课程类型 <b>*</b></span><select value={orderDraft.value.courseType} onChange={(event) => { orderDraft.value.courseType = (event.target as HTMLSelectElement).value as CourseType }}><option value="private">定制私教课（按课时）</option><option value="monthly">月卡课程（按月收费）</option></select></label>
-                  <label class="field"><span>课程项目 <b>*</b></span><input required maxlength={60} value={orderDraft.value.courseName} onInput={(event) => { orderDraft.value.courseName = (event.target as HTMLInputElement).value }} placeholder="例如：体态改善 / 团体训练" /></label>
+                  <label class="field"><span>课程类型 <b>*</b></span><select value={orderDraft.value.courseType} onChange={(event) => { orderDraft.value.courseType = (event.target as HTMLSelectElement).value as OrderType }}><option value="private">定制私教课（按课时）</option><option value="monthly">月卡课程（按月收费）</option><option value="package">套餐（组合课程）</option></select></label>
+                  <label class="field"><span>{orderDraft.value.courseType === 'package' ? '套餐名称' : '课程项目'} <b>*</b></span><input required maxlength={60} value={orderDraft.value.courseName} onInput={(event) => { orderDraft.value.courseName = (event.target as HTMLInputElement).value }} placeholder={orderDraft.value.courseType === 'package' ? '例如：塑形进阶套餐' : '例如：体态改善 / 团体训练'} /></label>
                   {orderDraft.value.courseType === 'private' ? <>
                     <label class="field"><span>购买课时（次） <b>*</b></span><input required type="number" min={1} step={1} value={orderDraft.value.sessions} onInput={(event) => { orderDraft.value.sessions = Number((event.target as HTMLInputElement).value) }} /></label>
                     <label class="field"><span>赠送课时（次）</span><input type="number" min={0} step={1} value={orderDraft.value.gifts} onInput={(event) => { orderDraft.value.gifts = Number((event.target as HTMLInputElement).value) }} /></label>
                     <label class="field"><span>订单结束日期 <b>*</b></span><input required type="date" value={orderDraft.value.endDate} onInput={(event) => { orderDraft.value.endDate = (event.target as HTMLInputElement).value }} /></label>
-                  </> : <>
+                  </> : orderDraft.value.courseType === 'monthly' ? <>
                     <label class="field"><span>订单起始日期 <b>*</b></span><input required type="date" value={orderDraft.value.startDate} onInput={(event) => { orderDraft.value.startDate = (event.target as HTMLInputElement).value }} /></label>
                     <label class="field"><span>订单结束日期 <b>*</b></span><input required type="date" min={orderDraft.value.startDate} value={orderDraft.value.endDate} onInput={(event) => { orderDraft.value.endDate = (event.target as HTMLInputElement).value }} /></label>
                     <div class="month-note"><span>◷</span><span>订单起止日期均包含在有效期内，月卡课程不登记消课。</span></div>
+                  </> : <>
+                    <div class="package-items form-grid-wide">
+                      <div class="package-items-heading"><strong>套餐课程明细</strong><button class="text-button" type="button" onClick={addPackageItem}>＋ 添加课程</button></div>
+                      <div class="month-note"><span>i</span><span>每项课程分别定价，套餐总价自动汇总所有课程金额。</span></div>
+                      {orderDraft.value.packageItems.map((item, index) => (
+                        <article class="package-item" key={`package-item-${index}`}>
+                          <div class="package-item-heading"><strong>课程 {index + 1}</strong>{orderDraft.value.packageItems.length > 1 && <button class="text-button" type="button" onClick={() => { orderDraft.value.packageItems.splice(index, 1) }}>移除</button>}</div>
+                          <div class="form-grid">
+                            <label class="field"><span>课程类型 <b>*</b></span><select value={item.courseType} onChange={(event) => { item.courseType = (event.target as HTMLSelectElement).value as CourseType; item.startDate = item.courseType === 'monthly' ? today : null }}><option value="private">定制私教</option><option value="monthly">月卡课程</option></select></label>
+                            <label class="field"><span>课程项目 <b>*</b></span><input required maxlength={60} value={item.courseName} onInput={(event) => { item.courseName = (event.target as HTMLInputElement).value }} placeholder="请输入套餐内课程名称" /></label>
+                            <label class="field"><span>课程金额（元） <b>*</b></span><input required type="number" min={0} step={0.01} value={item.amount} onInput={(event) => { item.amount = Number((event.target as HTMLInputElement).value) }} /></label>
+                            {item.courseType === 'private' ? <>
+                              <label class="field"><span>购买课时（次） <b>*</b></span><input required type="number" min={1} step={1} value={item.sessions ?? 1} onInput={(event) => { item.sessions = Number((event.target as HTMLInputElement).value) }} /></label>
+                              <label class="field"><span>赠送课时（次）</span><input type="number" min={0} step={1} value={item.gifts} onInput={(event) => { item.gifts = Number((event.target as HTMLInputElement).value) }} /></label>
+                              <label class="field"><span>课程结束日期 <b>*</b></span><input required type="date" value={item.endDate} onInput={(event) => { item.endDate = (event.target as HTMLInputElement).value }} /></label>
+                            </> : <>
+                              <label class="field"><span>课程起始日期 <b>*</b></span><input required type="date" value={item.startDate ?? today} onInput={(event) => { item.startDate = (event.target as HTMLInputElement).value }} /></label>
+                              <label class="field"><span>课程结束日期 <b>*</b></span><input required type="date" min={item.startDate ?? today} value={item.endDate} onInput={(event) => { item.endDate = (event.target as HTMLInputElement).value }} /></label>
+                            </>}
+                          </div>
+                        </article>
+                      ))}
+                    </div>
                   </>}
-                  <label class="field"><span>销售金额（元） <b>*</b></span><input required type="number" min={0.01} step={0.01} value={orderDraft.value.amount || ''} onInput={(event) => { orderDraft.value.amount = Number((event.target as HTMLInputElement).value) }} placeholder="0.00" /></label>
+                  {orderDraft.value.courseType === 'package' ? (
+                    <label class="field"><span>套餐总金额（元）</span><input type="number" value={packageTotal.value.toFixed(2)} readonly /></label>
+                  ) : (
+                    <label class="field"><span>销售金额（元） <b>*</b></span><input required type="number" min={0.01} step={0.01} value={orderDraft.value.amount || ''} onInput={(event) => { orderDraft.value.amount = Number((event.target as HTMLInputElement).value) }} placeholder="0.00" /></label>
+                  )}
                   <label class="field"><span>支付方式 <b>*</b></span><select value={paymentLabels.includes(orderDraft.value.payment) ? orderDraft.value.payment : '其他'} onChange={(event) => { orderDraft.value.payment = (event.target as HTMLSelectElement).value as PaymentMethod }}>{([...paymentLabels, '其他'] as PaymentMethod[]).map((method) => <option key={method} value={method}>{method}</option>)}</select></label>
                   {(! paymentLabels.includes(orderDraft.value.payment)) && (
                     <label class="field">

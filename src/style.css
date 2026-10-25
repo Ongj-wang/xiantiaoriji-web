@@ -633,6 +633,11 @@ tbody tr:last-child td {
   background: #edf3f7;
 }
 
+.type-tag.package {
+  color: #8b6f9e;
+  background: #f3eff7;
+}
+
 .amount-cell {
   color: #526d51;
   font-weight: 600;
@@ -1290,6 +1295,38 @@ tbody tr:last-child td {
 
 .form-grid-wide {
   grid-column: 1 / -1;
+}
+
+.package-items {
+  display: grid;
+  gap: 12px;
+}
+
+.package-items-heading,
+.package-item-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.package-items-heading > strong,
+.package-item-heading > strong {
+  color: #535d53;
+  font-size: 11px;
+}
+
+.package-item {
+  display: grid;
+  gap: 12px;
+  padding: 13px;
+  border: 1px solid #e9ece7;
+  border-radius: 8px;
+  background: #fbfcfa;
+}
+
+.package-item .form-grid {
+  gap: 12px;
 }
 
 .radio-field {
