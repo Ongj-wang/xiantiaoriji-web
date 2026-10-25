@@ -6,6 +6,10 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
   return {
     plugins: [vue(), vueJsx()],
+    build: {
+      outDir: '../static',
+    },
+    emptyOutDir: true,
     server: {
       proxy: {
         '/api': {

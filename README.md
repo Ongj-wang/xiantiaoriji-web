@@ -99,7 +99,7 @@ npm run dev
 
 统计页面通过 `start_date` 和 `cutoff_date` 指定统计期间，两个日期均包含在范围内，且起始日期不得晚于截止日期。统计接口返回 `{ "cutoffDate", "sales", "orderCount", "attendanceCount", "privateSessionsLeft", "summaryRows", "attendances" }`。其中 `summaryRows` 包含客户、课程、购买/赠送/已消/剩余课时和销售额；`attendances` 是统计期间内用于导出明细的消课记录。XLSX 文件由前端根据这份后端汇总结果生成。经营概览仍仅按截止日期请求汇总。
 
-Flask 服务在 `service/FlaskServer.py` 中实现上述 API；将前端生产构建产物放入仓库根目录的 `static` 后，访问 `http://localhost:5000/` 即可打开网页，服务同时提供 `static/assets` 下的前端资源。前端在服务不可用或接口异常时会显示请求错误，不会回退到本地模拟数据。
+Flask 服务在 `service/FlaskServer.py` 中实现上述 API；将前端生产构建产物放入仓库根目录的 `static` 后，访问 `http://localhost:5000/` 即可打开网页，服务同时提供 `static/assets` 下的前端资源。PyInstaller 打包后，配置和数据库目录位于 exe 同级目录；前端资源可放在 exe 同级的 `static` 目录，或通过 PyInstaller 的 `--add-data` 打包到应用资源目录。前端在服务不可用或接口异常时会显示请求错误，不会回退到本地模拟数据。
 
 ## 构建
 
