@@ -1,11 +1,13 @@
 import { computed, defineComponent, onMounted, ref } from 'vue'
 import {
   createAttendance,
+  cancelOrder as postCancellation,
   createOrder as postOrder,
   exportOrders as downloadOrders,
   getPrivateCourses,
   getOrders,
   getReport,
+  searchOrders,
   type AttendanceResult,
   type CourseType,
   type Order,
@@ -16,7 +18,7 @@ import {
 } from './api'
 import { createXlsx } from './xlsx'
 
-type Page = 'overview' | 'orders' | 'attendance' | 'reports'
+type Page = 'overview' | 'orders' | 'withdrawals' | 'attendance' | 'reports'
 const today = localDate(new Date())
 
 function localDate(date: Date) {
@@ -30,6 +32,7 @@ const navItems: { id: Page; label: string; icon: string }[] = [
   { id: 'overview', label: '经营概览', icon: '▦' },
   { id: 'orders', label: '订单台账', icon: '▤' },
   { id: 'attendance', label: '消课登记', icon: '✓' },
+  { id: 'withdrawals', label: '退课登记', icon: '↩' },
   { id: 'reports', label: '统计汇总', icon: '▥' },
 ]
 
@@ -62,6 +65,14 @@ export default defineComponent({
     const attendanceDate = ref(today)
     const attendanceNames = ref('')
     const attendanceResults = ref<AttendanceResult[]>([])
+    const withdrawalSearch = ref('')
+    const withdrawalResults = ref<Order[]>([])
+    const searchingWithdrawals = ref(false)
+    const cancellingOrderNo = ref('')
+    const withdrawalError = ref('')
+    const cancellationOrder = ref<Order | null>(null)
+    const cancellationAmount = ref('')
+    const cancellationReason = ref('')
     const orderFormError = ref('')
     const paymentLabels = ['微信', '支付宝', '现金', '银行卡', '收钱吧', '美团', '抖音'];
     const sourceLabels = ['自然到店', '老客户转介绍', '线上平台', '社交媒体', '异业合作'];
@@ -120,6 +131,11 @@ export default defineComponent({
 
     function formatMoney(amount: number) {
       return currency.format(amount)
+    }
+
+    function formatSessionCount(sessions: number | null, gifts: number) {
+      const total = (sessions ?? 0) + gifts
+      return `${total} 次${gifts > 0 ? ` (包含赠送 ${gifts})` : ''}`
     }
 
     function addPackageItem() {
@@ -205,6 +221,74 @@ export default defineComponent({
       } catch (error) {
         console.error('加载定制私教课程失败。', error)
         apiError.value = error instanceof Error ? error.message : '加载定制私教课程失败。'
+      }
+    }
+
+    async function searchWithdrawalOrders(event: SubmitEvent) {
+      event.preventDefault()
+      const query = withdrawalSearch.value.trim()
+      if (!query) {
+        withdrawalError.value = '请输入客户姓名或手机号。'
+        withdrawalResults.value = []
+        return
+      }
+
+      searchingWithdrawals.value = true
+      withdrawalError.value = ''
+      try {
+        withdrawalResults.value = await searchOrders(query)
+      } catch (error) {
+        console.error('查询客户订单失败。', error)
+        withdrawalError.value = error instanceof Error ? error.message : '查询订单失败，请稍后重试。'
+      } finally {
+        searchingWithdrawals.value = false
+      }
+    }
+
+    function openCancellation(order: Order) {
+      if (order.status !== 'active' || cancellingOrderNo.value) return
+      cancellationOrder.value = order
+      cancellationAmount.value = Number(order.amount).toFixed(2)
+      cancellationReason.value = ''
+      withdrawalError.value = ''
+    }
+
+    async function cancelCustomerOrder(event: SubmitEvent) {
+      event.preventDefault()
+      const order = cancellationOrder.value
+      const amount = Number(cancellationAmount.value)
+      const reason = cancellationReason.value.trim()
+      if (!order || order.status !== 'active') return
+      if (!Number.isFinite(amount) || amount < 0 || amount > order.amount || Math.round(amount * 100) / 100 !== amount) {
+        withdrawalError.value = '退订金额需为不小于 0 且不超过订单金额的数值，最多保留两位小数。'
+        return
+      }
+      if (!reason) {
+        withdrawalError.value = '请填写退订理由。'
+        return
+      }
+
+      cancellingOrderNo.value = order.orderNo
+      withdrawalError.value = ''
+      try {
+        const cancelledOrder = await postCancellation({
+          orderNo: order.orderNo,
+          cancelAmount: amount,
+          cancelReason: reason,
+        })
+        withdrawalResults.value = withdrawalResults.value.map((item) =>
+          item.orderNo === cancelledOrder.orderNo ? cancelledOrder : item,
+        )
+        orders.value = orders.value.map((item) =>
+          item.orderNo === cancelledOrder.orderNo ? cancelledOrder : item,
+        )
+        cancellationOrder.value = null
+        await loadReport()
+      } catch (error) {
+        console.error('退订课程订单失败。', error)
+        withdrawalError.value = error instanceof Error ? error.message : '退订失败，请稍后重试。'
+      } finally {
+        cancellingOrderNo.value = ''
       }
     }
 
@@ -563,6 +647,7 @@ export default defineComponent({
                     <div class="panel-heading"><div><h2>快捷操作</h2><p>常用台账操作</p></div></div>
                     <button class="quick-action" type="button" onClick={openNewOrder}><span class="quick-icon quick-sage">＋</span><span><strong>生成课程订单</strong><small>登记新客户课程与收款信息</small></span><b>→</b></button>
                     <button class="quick-action" type="button" onClick={() => { void navigate('attendance') }}><span class="quick-icon quick-blue">✓</span><span><strong>批量消课登记</strong><small>按课程关联私教客户并扣减课时</small></span><b>→</b></button>
+                    <button class="quick-action" type="button" onClick={() => { void navigate('withdrawals') }}><span class="quick-icon quick-amber">↩</span><span><strong>办理课程退订</strong><small>查询客户订单并退订激活中的课程</small></span><b>→</b></button>
                     <button class="quick-action" type="button" onClick={() => { void navigate('reports') }}><span class="quick-icon quick-amber">↗</span><span><strong>导出统计报表</strong><small>按截止日期生成 XLSX 文件</small></span><b>→</b></button>
                     <div class="quick-note"><span>i</span><p>订单号、消课关联及统计数据均由后端接口提供。</p></div>
                   </article>
@@ -606,6 +691,45 @@ export default defineComponent({
                       </table>
                     </div>
                   ) : <div class="empty-panel"><span class="empty-symbol">▤</span><strong>{orders.value.length ? '没有找到匹配订单' : '暂无订单记录'}</strong><p>{orders.value.length ? '试试调整搜索关键词或筛选条件。' : '登记订单后，订单信息会保存在此台账中。'}</p>{!orders.value.length && <button type="button" class="button-secondary" onClick={openNewOrder}>登记新订单</button>}</div>}
+                </section>
+              </>
+            )}
+
+            {activePage.value === 'withdrawals' && (
+              <>
+                <section class="page-intro">
+                  <div><div class="eyebrow">COURSE WITHDRAWAL</div><h1>退课登记</h1><p>按客户姓名或手机号查询订单，并为激活中的课程办理退订。</p></div>
+                </section>
+                <section class="panel withdrawal-panel">
+                  <div class="panel-heading"><div><h2>查询客户订单</h2><p>查询结果包含该客户的全部订单，只有激活中的订单可以退订。</p></div></div>
+                  <form class="withdrawal-search" onSubmit={searchWithdrawalOrders}>
+                    <label class="search-box"><span>⌕</span><input required maxlength={100} value={withdrawalSearch.value} onInput={(event) => { withdrawalSearch.value = (event.target as HTMLInputElement).value }} placeholder="请输入客户姓名或手机号" /></label>
+                    <button type="submit" class="button-primary" disabled={searchingWithdrawals.value}>{searchingWithdrawals.value ? '正在查询…' : '查询订单'}</button>
+                  </form>
+                  {withdrawalError.value && !cancellationOrder.value && <div class="form-error withdrawal-error" role="alert">{withdrawalError.value}</div>}
+                  {searchingWithdrawals.value ? <div class="history-empty">正在查询客户订单…</div> : withdrawalResults.value.length ? (
+                    <div class="table-wrap">
+                      <table class="orders-table withdrawal-table">
+                        <thead><tr><th>订单 / 客户</th><th>课程项目</th><th>课时信息</th><th>签到次数</th><th>销售金额</th><th>登记日期</th><th>订单状态</th><th>操作</th></tr></thead>
+                        <tbody>{withdrawalResults.value.map((order) => (
+                          <tr key={order.orderNo}>
+                            <td><strong class="order-number">{order.orderNo}</strong><strong class="customer-name">{order.customer}</strong><small class="sub-cell">{order.phone}</small></td>
+                            <td><span class={['type-tag', order.courseType]}>{order.courseType === 'private' ? '定制私教' : order.courseType === 'monthly' ? '月卡课程' : '套餐'}</span><strong class="course-cell">{order.courseName}</strong></td>
+                            <td>{order.courseType === 'private' ? <strong>{formatSessionCount(order.sessions, order.gifts || 0)}</strong> : order.courseType === 'monthly' ? <><strong>有效期不限次</strong><small class="sub-cell">{order.startDate ?? order.validFrom} 至 {order.endDate ?? order.validTo}</small></> : <><strong>{order.items?.length ?? 0} 项课程</strong>{order.items?.map((item, index) => <small class="sub-cell" key={`${order.orderNo}-withdrawal-item-${index}`}>{item.courseName} · {item.courseType === 'private' ? `私教 ${formatSessionCount(item.sessions, item.gifts || 0)}` : `月卡 ${item.startDate} 至 ${item.endDate}`}</small>)}</>}</td>
+                            <td>{order.courseType === 'package'
+                              ? order.items?.map((item, index) => <small class="sub-cell" key={`${order.orderNo}-attendance-${index}`}>{item.courseName}：{item.courseType === 'private' ? `${item.attendance_time ?? 0} 次` : '未登记'}</small>)
+                              : order.courseType === 'private'
+                                ? <strong>{order.attendance_time ?? 0} 次</strong>
+                                : <span class="muted-cell">未登记</span>}</td>
+                            <td class="amount-cell">{formatMoney(order.amount)}</td>
+                            <td>{order.orderDate}</td>
+                            <td><span class={['withdrawal-status', order.status]}>{order.status === 'active' ? '激活中' : '已失效'}</span>{order.cancelDate && <small class="sub-cell">退订日期 {order.cancelDate}</small>}{order.cancelAmount !== null && order.cancelAmount !== undefined && <small class="sub-cell">退订金额 {formatMoney(order.cancelAmount)}</small>}{order.cancelReason && <small class="sub-cell">理由：{order.cancelReason}</small>}</td>
+                            <td>{order.status === 'active' ? <button type="button" class="button-danger" disabled={cancellingOrderNo.value !== ''} onClick={() => { openCancellation(order) }}>办理退订</button> : <span class="muted-cell">不可退订</span>}</td>
+                          </tr>
+                        ))}</tbody>
+                      </table>
+                    </div>
+                  ) : <div class="empty-panel"><span class="empty-symbol">↩</span><strong>{withdrawalSearch.value.trim() ? '没有找到该客户的订单' : '尚未查询订单'}</strong><p>{withdrawalSearch.value.trim() ? '请核对客户姓名或手机号后重试。' : '输入客户姓名或手机号后查询其全部订单。'}</p></div>}
                 </section>
               </>
             )}
@@ -681,6 +805,25 @@ export default defineComponent({
             <footer class="app-footer"><span>练习簿 · 私教课程台账</span><span>业务数据由后端接口读写 · 汇总报表由后端计算</span></footer>
           </div>
         </main>
+
+        {cancellationOrder.value && (
+          <div class="modal-backdrop" onClick={(event) => { if (event.target === event.currentTarget && !cancellingOrderNo.value) cancellationOrder.value = null }}>
+            <section class="order-modal cancellation-modal" role="dialog" aria-modal="true" aria-labelledby="cancellation-modal-title">
+              <div class="modal-heading">
+                <div><div class="eyebrow">COURSE WITHDRAWAL</div><h2 id="cancellation-modal-title">办理课程退订</h2><p>{cancellationOrder.value.customer} · {cancellationOrder.value.courseName} · 订单金额 {formatMoney(cancellationOrder.value.amount)}</p></div>
+                <button class="close-button" type="button" aria-label="关闭" disabled={cancellingOrderNo.value !== ''} onClick={() => { cancellationOrder.value = null }}>×</button>
+              </div>
+              <form onSubmit={cancelCustomerOrder}>
+                <div class="form-grid">
+                  <label class="field"><span>退订金额（元） <b>*</b></span><input required type="number" min={0} max={cancellationOrder.value.amount} step={0.01} value={cancellationAmount.value} onInput={(event) => { cancellationAmount.value = (event.target as HTMLInputElement).value }} placeholder="请输入退订金额" /></label>
+                  <label class="field form-grid-wide"><span>退订理由 <b>*</b></span><textarea required rows={3} maxlength={500} value={cancellationReason.value} onInput={(event) => { cancellationReason.value = (event.target as HTMLTextAreaElement).value }} placeholder="请填写退订原因" /></label>
+                </div>
+                {withdrawalError.value && <div class="form-error" role="alert">{withdrawalError.value}</div>}
+                <div class="modal-footer"><span><b>*</b> 退订金额不可超过订单金额，提交后订单将失效。</span><div><button type="button" class="button-secondary" disabled={cancellingOrderNo.value !== ''} onClick={() => { cancellationOrder.value = null }}>取消</button><button type="submit" class="button-danger cancellation-submit" disabled={cancellingOrderNo.value !== ''}>{cancellingOrderNo.value ? '正在提交…' : '确认退订'}</button></div></div>
+              </form>
+            </section>
+          </div>
+        )}
 
         {showOrderForm.value && (
           <div class="modal-backdrop" onClick={(event) => { if (event.target === event.currentTarget) showOrderForm.value = false }}>

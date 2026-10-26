@@ -25,6 +25,11 @@ export type Order = {
   remark: string
   isNewMember: boolean
   orderDate: string
+  status: 'active' | 'disactive'
+  cancelDate: string | null
+  cancelAmount: number | null
+  cancelReason: string
+  attendance_time: number
   validFrom: string | null
   validTo: string | null
   startDate: string | null
@@ -38,8 +43,12 @@ export type PackageItem = {
   amount: number
   sessions: number | null
   gifts: number
+  attendance_time?: number
   startDate: string | null
   endDate: string
+  cancelDate?: string | null
+  cancelAmount?: number | null
+  cancelReason?: string
 }
 
 export type Attendance = {
@@ -144,6 +153,32 @@ export async function getOrders() {
     throw new Error('后端接口 /api/orders 响应格式无效，应返回 { "orders": [] }。')
   }
   return response.orders as Order[]
+}
+
+export async function searchOrders(query: string) {
+  const params = new URLSearchParams({ query: query.trim() })
+  const response = await request<unknown>(`/api/orders/search?${params.toString()}`)
+  if (
+    typeof response !== 'object' ||
+    response === null ||
+    !('orders' in response) ||
+    !Array.isArray(response.orders)
+  ) {
+    throw new Error('后端接口 /api/orders/search 响应格式无效，应返回 { "orders": [] }。')
+  }
+  return response.orders as Order[]
+}
+
+export async function cancelOrder(input: {
+  orderNo: string
+  cancelAmount: number
+  cancelReason: string
+}) {
+  const response = await request<{ order: Order }>('/api/orders/cancel', {
+    method: 'POST',
+    body: JSON.stringify(input),
+  })
+  return response.order
 }
 
 export async function exportOrders(filters: {

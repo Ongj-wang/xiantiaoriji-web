@@ -18,12 +18,16 @@ npm run dev
 | 方法 | 路径 | 用途 |
 | --- | --- | --- |
 | GET | `/api/orders` | 获取订单，返回 `{ "orders": Order[] }` |
+| GET | `/api/orders/search?query=客户姓名或手机号` | 按客户姓名或手机号模糊查询全部订单 |
+| POST | `/api/orders/cancel` | 退订一个激活中的订单，将订单及套餐明细转为失效状态 |
 | GET | `/api/orders/export` | 按当前订单筛选条件生成并下载 XLSX 文件 |
 | POST | `/api/orders` | 新建订单，服务端生成唯一订单号并返回 `{ "order": Order }` |
 | GET | `/api/courses?course_type=private` | 获取定制私教课程，返回 `{ "courses": string[] }` |
 | GET | `/api/attendance` | 获取签到记录，返回 `{ "attendances": Attendance[] }` |
 | POST | `/api/attendance` | 批量签到并由服务端匹配订单，返回 `{ "results": AttendanceResult[] }` |
 | GET | `/api/reports?start_date=YYYY-MM-DD&cutoff_date=YYYY-MM-DD` | 由服务端按统计起始日期（含）和截止日期（含）计算统计汇总 |
+
+退订请求体为 `{ "orderNo": "订单号", "cancelAmount": 300, "cancelReason": "客户个人原因" }`。退订金额须为 0 或正数、最多两位小数且不超过订单金额，退订理由必填且最多 500 字。只有 `active_orders` 中的订单可以退订；后端会将订单状态更新为 `disactive`，写入当天的 `cancelDate`、退订金额 `cancelAmount` 和退订理由 `cancelReason`，并将其从 `active_orders` 移入 `disactive_orders`。退订套餐时，套餐主订单及其每条 `package_items` 明细都会保存相同的退订日期、金额和理由；套餐明细同时从 `active_package_items` 移入 `disactive_package_items`。
 
 新建普通订单请求体：
 
