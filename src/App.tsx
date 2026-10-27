@@ -5,6 +5,7 @@ import {
   cancelOrder as postCancellation,
   createOrder as postOrder,
   exportOrders as downloadOrders,
+  getAttendanceSchedule,
   getStores,
   getPrivateCourses,
   getOrders,
@@ -12,12 +13,14 @@ import {
   searchOrders,
   updateStore as putStore,
   type AttendanceResult,
+  type AttendanceSchedule,
   type CourseType,
   type Order,
   type OrderType,
   type PackageItem,
   type PaymentMethod,
   type Report,
+  type ScheduleCourse,
   type Store,
   setSelectedStoreId,
 } from './api'
@@ -91,6 +94,13 @@ export default defineComponent({
     const attendanceTeacher = ref('')
     const attendanceNames = ref('')
     const attendanceResults = ref<AttendanceResult[]>([])
+    const scheduleDate = computed(() => attendanceDateTime.value.slice(0, 10))
+    const schedule = ref<AttendanceSchedule | null>(null)
+    const loadingSchedule = ref(false)
+    const scheduleError = ref('')
+    const showScheduleModal = ref(false)
+    const scheduleDetail = ref<{ teacher: string; hour: string; course: ScheduleCourse } | null>(null)
+    let scheduleRequestId = 0
     const withdrawalSearch = ref('')
     const withdrawalResults = ref<Order[]>([])
     const searchingWithdrawals = ref(false)
@@ -152,6 +162,20 @@ export default defineComponent({
     const reportAttendances = computed(() => report.value?.attendances ?? [])
     const metrics = computed(() => report.value)
     const activeStore = computed(() => stores.value.find((store) => store.id === activeStoreId.value))
+    const scheduleCells = computed(() => {
+      const cells = new Map<string, ScheduleCourse[]>()
+      for (const cell of schedule.value?.cells ?? []) {
+        cells.set(`${cell.teacher}|${cell.hour}`, cell.courses)
+      }
+      return cells
+    })
+    const scheduleLessonCount = computed(() => {
+      if (schedule.value?.date !== scheduleDate.value) return null
+      return schedule.value.cells.reduce(
+        (count, cell) => count + cell.courses.reduce((courseCount, course) => courseCount + course.customers.length, 0),
+        schedule.value.unscheduled.length,
+      )
+    })
     const packageTotal = computed(() => Number(orderDraft.value.packageItems
       .reduce((total, item) => total + (Number.isFinite(item.amount) ? item.amount : 0), 0)
       .toFixed(2)))
@@ -249,6 +273,33 @@ export default defineComponent({
         console.error('加载定制私教课程失败。', error)
         apiError.value = error instanceof Error ? error.message : '加载定制私教课程失败。'
       }
+      await loadSchedule()
+    }
+
+    async function loadSchedule() {
+      const requestId = ++scheduleRequestId
+      const requestedDate = scheduleDate.value
+      schedule.value = null
+      loadingSchedule.value = true
+      scheduleError.value = ''
+      if (!requestedDate) {
+        loadingSchedule.value = false
+        return
+      }
+      try {
+        const result = await getAttendanceSchedule(requestedDate)
+        if (requestId === scheduleRequestId) schedule.value = result
+      } catch (error) {
+        if (requestId !== scheduleRequestId) return
+        console.error('加载当日排课失败。', error)
+        scheduleError.value = error instanceof Error ? error.message : '加载当日排课失败。'
+      } finally {
+        if (requestId === scheduleRequestId) loadingSchedule.value = false
+      }
+    }
+
+    function openScheduleDetail(teacher: string, hour: string, course: ScheduleCourse) {
+      scheduleDetail.value = { teacher, hour, course }
     }
 
     async function searchWithdrawalOrders(event: SubmitEvent) {
@@ -593,6 +644,7 @@ export default defineComponent({
         attendanceResults.value = response.results
         attendanceNames.value = ''
         apiError.value = ''
+        await loadSchedule()
       } catch (error) {
         console.error('提交批量消课失败。', error)
         apiError.value = error instanceof Error ? error.message : '提交消课失败，请稍后重试。'
@@ -879,7 +931,15 @@ export default defineComponent({
                       </select>
                       {!privateCourses.value.length && <small class="field-help">后端暂未返回定制私教课程，请确认是否已有私教订单及接口状态。</small>}
                     </label>
-                    <label class="field"><span>上课日期和时间 <b>*</b></span><input type="datetime-local" required value={attendanceDateTime.value} onInput={(event) => { attendanceDateTime.value = (event.target as HTMLInputElement).value; attendanceResults.value = [] }} /></label>
+                    <label class="field"><span>上课日期和时间 <b>*</b></span><input type="datetime-local" required value={attendanceDateTime.value} onInput={(event) => {
+                      const previousDate = scheduleDate.value
+                      attendanceDateTime.value = (event.target as HTMLInputElement).value
+                      attendanceResults.value = []
+                      if (scheduleDate.value !== previousDate) {
+                        scheduleDetail.value = null
+                        void loadSchedule()
+                      }
+                    }} /></label>
                     <label class="field"><span>授课老师 <b>*</b></span><input required maxlength={40} value={attendanceTeacher.value} onInput={(event) => { attendanceTeacher.value = (event.target as HTMLInputElement).value; attendanceResults.value = [] }} placeholder="请输入授课老师姓名" /></label>
                     <label class="field"><span>上课客户姓名 <b>*</b></span>
                       <textarea required rows={7} value={attendanceNames.value} onInput={(event) => { attendanceNames.value = (event.target as HTMLTextAreaElement).value }} placeholder={'每行一位客户姓名\n例如：\n林晓\n陈可'} />
@@ -889,6 +949,11 @@ export default defineComponent({
                   </form>
                   <aside class="attendance-side">
                     <article class="panel rule-card"><div class="rule-icon">i</div><h3>消课规则</h3><ul><li>只匹配选定课程的定制私教订单，月卡课程不消课。</li><li>每位客户每次登记扣减 1 个购买或赠送课时。</li><li>同名客户有多笔订单时，优先关联最近且仍有余课的订单。</li><li>无匹配订单或课时已用完的客户不会登记消课。</li></ul></article>
+                    <button type="button" class="panel schedule-summary-card" onClick={() => { scheduleDetail.value = null; showScheduleModal.value = true }}>
+                      <span class="schedule-summary-heading"><span class="schedule-summary-icon">▦</span><span><strong>当日排课</strong><small>{scheduleDate.value || '请先选择上课日期'}</small></span><b>→</b></span>
+                      <strong class="schedule-summary-count">{loadingSchedule.value ? '…' : scheduleLessonCount.value === null ? '—' : `${scheduleLessonCount.value} 节课`}</strong>
+                      <span class="schedule-summary-hint">{loadingSchedule.value ? '正在加载排课' : '点击查看课程表'}</span>
+                    </button>
                     <article class="panel result-card">
                       <div class="panel-heading"><div><h3>登记结果</h3><p>提交后查看每位客户的匹配情况</p></div></div>
                       {attendanceResults.value.length ? (
@@ -1088,6 +1153,70 @@ export default defineComponent({
                 {storeError.value && <div class="form-error" role="alert">{storeError.value}</div>}
                 <div class="modal-footer"><span>新门店将创建空白账本。</span><div><button type="submit" class="button-primary" disabled={creatingStore.value || switchingStore.value}>{creatingStore.value ? '正在创建…' : '＋ 创建门店'}</button></div></div>
               </form>
+            </section>
+          </div>
+        )}
+        {showScheduleModal.value && (
+          <div class="modal-backdrop" onClick={(event) => { if (event.target === event.currentTarget) showScheduleModal.value = false }}>
+            <section class="schedule-modal schedule-overview-modal" role="dialog" aria-modal="true" aria-labelledby="daily-schedule-title">
+              <div class="modal-heading">
+                <div><div class="eyebrow">DAILY SCHEDULE</div><h2 id="daily-schedule-title">当日排课</h2><p>{scheduleDate.value} · {scheduleLessonCount.value ?? '—'} 节课 · {schedule.value?.teachers.length ?? 0} 位老师</p></div>
+                <button class="close-button" type="button" aria-label="关闭当日排课" onClick={() => { showScheduleModal.value = false }}>×</button>
+              </div>
+              {loadingSchedule.value ? <div class="history-empty">正在加载当日排课…</div> : scheduleError.value ? <div class="history-empty"><span>{scheduleError.value}</span><button type="button" class="text-button" onClick={() => { void loadSchedule() }}>重新加载</button></div> : schedule.value?.teachers.length ? (
+                <div class="schedule-overview-body">
+                  <div class="table-wrap schedule-wrap">
+                    <table class="schedule-table">
+                      <thead><tr><th class="schedule-time-column">时间段</th>{schedule.value.teachers.map((teacher) => <th key={teacher}>{teacher}</th>)}</tr></thead>
+                      <tbody>
+                        {schedule.value.hours.map((hour) => (
+                          <tr key={hour}>
+                            <th class="schedule-time-column" scope="row">{hour}–{`${String(Number(hour.slice(0, 2)) + 1).padStart(2, '0')}:00`}</th>
+                            {schedule.value!.teachers.map((teacher) => {
+                              const courses = scheduleCells.value.get(`${teacher}|${hour}`) ?? []
+                              return (
+                                <td key={teacher}>
+                                  {courses.length ? courses.map((course) => (
+                                    <button type="button" class="schedule-course" key={course.courseName} onClick={() => { openScheduleDetail(teacher, hour, course) }}>
+                                      <strong>{course.courseName}</strong>
+                                      <small>{course.customers.length} 位客户</small>
+                                    </button>
+                                  )) : <span class="schedule-empty">—</span>}
+                                </td>
+                              )
+                            })}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  {schedule.value.unscheduled.length > 0 && (
+                    <p class="schedule-note">另有 {schedule.value.unscheduled.length} 条记录不在 09:00–23:00 时间段内：{schedule.value.unscheduled.map((item) => `${item.time} ${item.teacher} ${item.courseName}（${item.customer}）`).join('；')}</p>
+                  )}
+                </div>
+              ) : schedule.value?.unscheduled.length ? (
+                <div class="schedule-overview-body"><p class="schedule-note">当日有 {schedule.value.unscheduled.length} 条记录不在 09:00–23:00 时间段内：{schedule.value.unscheduled.map((item) => `${item.time} ${item.teacher} ${item.courseName}（${item.customer}）`).join('；')}</p></div>
+              ) : <div class="history-empty">{scheduleDate.value} 还没有消课排课记录</div>}
+            </section>
+          </div>
+        )}
+        {scheduleDetail.value && (
+          <div class="modal-backdrop" onClick={(event) => { if (event.target === event.currentTarget) scheduleDetail.value = null }}>
+            <section class="schedule-modal" role="dialog" aria-modal="true" aria-labelledby="schedule-detail-title">
+              <div class="modal-heading">
+                <div><div class="eyebrow">SESSION DETAIL</div><h2 id="schedule-detail-title">{scheduleDetail.value.course.courseName}</h2><p>{scheduleDate.value} · {scheduleDetail.value.hour} · 授课老师 {scheduleDetail.value.teacher}</p></div>
+                <button class="close-button" type="button" aria-label="关闭" onClick={() => { scheduleDetail.value = null }}>×</button>
+              </div>
+              <ul class="schedule-customer-list">
+                {scheduleDetail.value.course.customers.map((customer, index) => (
+                  <li key={`${customer.orderNo}-${customer.customer}-${index}`}>
+                    <span class="schedule-customer-index">{index + 1}</span>
+                    <div><strong>{customer.customer}</strong><small>{customer.phone || '未登记手机号'} · 订单 {customer.orderNo}</small></div>
+                    <span class="schedule-customer-time">{customer.time}</span>
+                  </li>
+                ))}
+              </ul>
+              <div class="modal-footer"><span>共 {scheduleDetail.value.course.customers.length} 位上课客户</span><div><button type="button" class="button-secondary" onClick={() => { scheduleDetail.value = null }}>关闭</button></div></div>
             </section>
           </div>
         )}

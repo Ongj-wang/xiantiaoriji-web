@@ -26,6 +26,7 @@ npm run dev
 | POST | `/api/orders` | 新建订单，服务端生成唯一订单号并返回 `{ "order": Order }` |
 | GET | `/api/courses?course_type=private` | 获取定制私教课程，返回 `{ "courses": string[] }` |
 | GET | `/api/attendance` | 获取签到记录，返回 `{ "attendances": Attendance[] }` |
+| GET | `/api/attendance/schedule?date=YYYY-MM-DD` | 获取指定日期的排课，按授课老师与整点时段返回课程和上课客户 |
 | POST | `/api/attendance` | 批量签到并由服务端匹配订单，返回 `{ "results": AttendanceResult[] }` |
 | GET | `/api/reports?start_date=YYYY-MM-DD&cutoff_date=YYYY-MM-DD` | 由服务端按统计起始日期（含）和截止日期（含）计算统计汇总 |
 
@@ -104,6 +105,33 @@ npm run dev
 订单台账可按登记月份起止范围、课程类型和客户/手机号/订单号/课程名称搜索。`GET /api/orders/export` 接收同名筛选参数 `start_month`、`end_month`（格式 `YYYY-MM`，边界包含）、`course_type`（`all`、`private` 或 `monthly`）及 `search`，返回由后端生成的 `.xlsx` 文件；导出行与订单台账当前显示的筛选结果一致。
 
 `GET /api/attendance` 返回 `{ "attendances": Attendance[] }`。`POST /api/attendance` 返回 `{ "results": [{ "name": "客户姓名", "matched": true, "detail": "已关联订单号" }] }`。签到记录用于定制私教消课；月卡课程无需消课。
+
+`GET /api/attendance/schedule?date=YYYY-MM-DD` 返回某天的排课：
+
+```json
+{
+  "date": "2026-10-27",
+  "hours": ["09:00", "10:00", "…", "22:00"],
+  "teachers": ["李明"],
+  "cells": [
+    {
+      "teacher": "李明",
+      "hour": "09:00",
+      "courses": [
+        {
+          "courseName": "体态改善",
+          "customers": [
+            { "customer": "林晓", "phone": "13800000000", "orderNo": "123456", "time": "09:30" }
+          ]
+        }
+      ]
+    }
+  ],
+  "unscheduled": []
+}
+```
+
+时间表纵向为 09:00 至 23:00 的整点课时，横向为授课老师；同一老师同一小时内的每门课程聚合为一项，客户按消课时间排列。未记录消课时间的记录、以及不在 09:00–23:00 范围内的记录会放入 `unscheduled`，不会静默丢弃。该接口与消课登记使用同一门店账本。
 
 统计页面通过 `start_date` 和 `cutoff_date` 指定统计期间，两个日期均包含在范围内，且起始日期不得晚于截止日期。统计接口返回 `{ "cutoffDate", "sales", "orderCount", "attendanceCount", "privateSessionsLeft", "summaryRows", "attendances" }`。其中 `summaryRows` 包含客户、课程、购买/赠送/已消/剩余课时和销售额；`attendances` 是统计期间内用于导出明细的消课记录。XLSX 文件由前端根据这份后端汇总结果生成。经营概览仍仅按截止日期请求汇总。
 

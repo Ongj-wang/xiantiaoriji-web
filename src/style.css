@@ -8,7 +8,7 @@
   -moz-osx-font-smoothing: grayscale;
   font-optical-sizing: auto;
   font-weight: 400;
-  font-size: 14px;
+  font-size: 16.1px;
   font-feature-settings: 'tnum';
 }
 
@@ -83,7 +83,7 @@ button:disabled {
   color: #fff;
   background: #5f795f;
   font-family: 'Noto Serif SC', serif;
-  font-size: 18px;
+  font-size: 20.7px;
   font-weight: 600;
 }
 
@@ -95,21 +95,21 @@ button:disabled {
 
 .brand-copy strong {
   font-family: 'Noto Serif SC', serif;
-  font-size: 17px;
+  font-size: 19.5px;
   font-weight: 600;
   letter-spacing: 0.05em;
 }
 
 .brand-copy small {
   color: #9ca49b;
-  font-size: 9px;
+  font-size: 10.4px;
   letter-spacing: 0.14em;
 }
 
 .side-label {
   margin: 42px 10px 11px;
   color: #a0a69f;
-  font-size: 11px;
+  font-size: 12.6px;
   letter-spacing: 0.06em;
 }
 
@@ -148,7 +148,7 @@ button:disabled {
   width: 20px;
   place-items: center;
   color: #788378;
-  font-size: 16px;
+  font-size: 18.4px;
 }
 
 .nav-item.active .nav-icon {
@@ -162,7 +162,7 @@ button:disabled {
   border-radius: 10px;
   color: #818980;
   background: #f0f2ef;
-  font-size: 10px;
+  font-size: 11.5px;
   text-align: center;
 }
 
@@ -198,13 +198,13 @@ button:disabled {
 
 .mode-card strong {
   color: #515b50;
-  font-size: 11px;
+  font-size: 12.6px;
   font-weight: 600;
 }
 
 .mode-card small {
   color: #9aa198;
-  font-size: 10px;
+  font-size: 11.5px;
 }
 
 .profile {
@@ -241,19 +241,19 @@ button:disabled {
 }
 
 .profile-copy strong {
-  font-size: 11px;
+  font-size: 12.6px;
   font-weight: 600;
 }
 
 .profile-copy small {
   color: #9ba199;
-  font-size: 10px;
+  font-size: 11.5px;
 }
 
 .profile-more {
   margin-left: auto;
   color: #929a91;
-  font-size: 20px;
+  font-size: 23.0px;
 }
 
 .main-area {
@@ -284,7 +284,7 @@ button:disabled {
 .breadcrumb {
   gap: 11px;
   color: #939a92;
-  font-size: 12px;
+  font-size: 13.8px;
 }
 
 .breadcrumb strong {
@@ -302,7 +302,7 @@ button:disabled {
 
 .today-label {
   color: #858d84;
-  font-size: 11px;
+  font-size: 12.6px;
 }
 
 .mode-pill {
@@ -314,7 +314,7 @@ button:disabled {
   border-radius: 20px;
   color: #737d71;
   background: #fff;
-  font-size: 10px;
+  font-size: 11.5px;
 }
 
 .mode-pill i {
@@ -339,7 +339,7 @@ button:disabled {
   border-radius: 8px;
   color: #8a533c;
   background: #fff8f3;
-  font-size: 12px;
+  font-size: 13.8px;
 }
 
 .notice > span {
@@ -351,7 +351,7 @@ button:disabled {
   border-radius: 50%;
   color: white;
   background: #c8835e;
-  font-size: 11px;
+  font-size: 12.6px;
 }
 
 .notice p {
@@ -362,7 +362,7 @@ button:disabled {
   border: 0;
   color: #98634b;
   background: transparent;
-  font-size: 18px;
+  font-size: 20.7px;
 }
 
 .page-intro {
@@ -376,7 +376,7 @@ button:disabled {
 .eyebrow {
   margin-bottom: 7px;
   color: #879383;
-  font-size: 9px;
+  font-size: 10.4px;
   font-weight: 600;
   letter-spacing: 0.17em;
 }
@@ -385,7 +385,7 @@ button:disabled {
   margin: 0;
   color: #303831;
   font-family: 'Noto Serif SC', serif;
-  font-size: 26px;
+  font-size: 29.9px;
   font-weight: 600;
   letter-spacing: 0.04em;
 }
@@ -393,7 +393,7 @@ button:disabled {
 .page-intro p {
   margin: 8px 0 0;
   color: #8e958d;
-  font-size: 12px;
+  font-size: 13.8px;
 }
 
 .button-primary,
@@ -405,7 +405,7 @@ button:disabled {
   gap: 8px;
   padding: 0 14px;
   border-radius: 7px;
-  font-size: 12px;
+  font-size: 13.8px;
   font-weight: 600;
   transition: background 150ms ease, transform 150ms ease;
 }
@@ -423,7 +423,7 @@ button:disabled {
 }
 
 .button-primary > span {
-  font-size: 16px;
+  font-size: 18.4px;
   font-weight: 400;
   line-height: 1;
 }
@@ -465,7 +465,7 @@ button:disabled {
   justify-content: space-between;
   gap: 7px;
   color: #7f877e;
-  font-size: 11px;
+  font-size: 12.6px;
 }
 
 .metric-icon {
@@ -474,7 +474,7 @@ button:disabled {
   height: 28px;
   place-items: center;
   border-radius: 8px;
-  font-size: 13px;
+  font-size: 15.0px;
   font-weight: 600;
 }
 
@@ -502,7 +502,7 @@ button:disabled {
   display: block;
   margin-top: 12px;
   color: #303831;
-  font-size: 25px;
+  font-size: 28.7px;
   font-weight: 600;
   letter-spacing: -0.04em;
   line-height: 1.15;
@@ -511,7 +511,7 @@ button:disabled {
 .metric-card > strong em,
 .report-metric strong em {
   color: #889087;
-  font-size: 12px;
+  font-size: 13.8px;
   font-style: normal;
   font-weight: 400;
   letter-spacing: 0;
@@ -521,7 +521,7 @@ button:disabled {
   display: block;
   margin-top: 8px;
   color: #a2a8a0;
-  font-size: 10px;
+  font-size: 11.5px;
 }
 
 .overview-grid {
@@ -553,7 +553,7 @@ button:disabled {
   margin: 0;
   color: #333a34;
   font-family: 'Noto Serif SC', serif;
-  font-size: 15px;
+  font-size: 17.3px;
   font-weight: 600;
 }
 
@@ -561,7 +561,7 @@ button:disabled {
 .list-toolbar > div:first-child > p {
   margin: 6px 0 0;
   color: #969d95;
-  font-size: 10px;
+  font-size: 11.5px;
 }
 
 .text-button {
@@ -569,7 +569,7 @@ button:disabled {
   border: 0;
   color: #647b61;
   background: transparent;
-  font-size: 11px;
+  font-size: 12.6px;
 }
 
 .text-button span {
@@ -595,7 +595,7 @@ th {
   border-bottom: 1px solid #edf0eb;
   color: #969d94;
   background: #fafbf9;
-  font-size: 10px;
+  font-size: 11.5px;
   font-weight: 500;
 }
 
@@ -604,7 +604,7 @@ td {
   padding: 8px 14px;
   border-bottom: 1px solid #f0f2ef;
   color: #697169;
-  font-size: 11px;
+  font-size: 12.6px;
 }
 
 tbody tr:last-child td {
@@ -619,21 +619,21 @@ tbody tr:last-child td {
 
 .customer-name {
   color: #374038;
-  font-size: 11px;
+  font-size: 12.6px;
   font-weight: 600;
 }
 
 .sub-cell {
   margin-top: 4px;
   color: #9ba199;
-  font-size: 10px;
+  font-size: 11.5px;
 }
 
 .type-tag {
   display: inline-flex;
   padding: 4px 7px;
   border-radius: 4px;
-  font-size: 9px;
+  font-size: 10.4px;
   font-weight: 500;
 }
 
@@ -676,20 +676,20 @@ tbody tr:last-child td {
   border-radius: 12px;
   color: #789075;
   background: #f0f4ee;
-  font-size: 19px;
+  font-size: 21.8px;
 }
 
 .empty-panel > strong {
   color: #515b51;
   font-family: 'Noto Serif SC', serif;
-  font-size: 13px;
+  font-size: 15.0px;
   font-weight: 600;
 }
 
 .empty-panel > p {
   margin: 7px 0 14px;
   color: #9aa198;
-  font-size: 10px;
+  font-size: 11.5px;
 }
 
 .quick-panel .panel-heading {
@@ -721,7 +721,7 @@ tbody tr:last-child td {
   flex: 0 0 auto;
   place-items: center;
   border-radius: 9px;
-  font-size: 15px;
+  font-size: 17.3px;
 }
 
 .quick-sage {
@@ -746,19 +746,19 @@ tbody tr:last-child td {
 
 .quick-action strong {
   color: #4d564e;
-  font-size: 11px;
+  font-size: 12.6px;
   font-weight: 600;
 }
 
 .quick-action small {
   color: #9aa198;
-  font-size: 9px;
+  font-size: 10.4px;
 }
 
 .quick-action > b {
   margin-left: auto;
   color: #a2a99f;
-  font-size: 13px;
+  font-size: 15.0px;
   font-weight: 400;
 }
 
@@ -771,7 +771,7 @@ tbody tr:last-child td {
   border-radius: 6px;
   color: #899084;
   background: #f7f8f5;
-  font-size: 9px;
+  font-size: 10.4px;
   line-height: 1.6;
 }
 
@@ -787,7 +787,7 @@ tbody tr:last-child td {
   gap: 16px;
   margin-top: 22px;
   color: #a5aaa3;
-  font-size: 9px;
+  font-size: 10.4px;
 }
 
 .list-panel {
@@ -815,7 +815,7 @@ tbody tr:last-child td {
   border-radius: 12px;
   color: #788275;
   background: #f2f5f0;
-  font-size: 9px;
+  font-size: 10.4px;
   font-weight: 500;
 }
 
@@ -840,7 +840,7 @@ tbody tr:last-child td {
 }
 
 .search-box > span {
-  font-size: 18px;
+  font-size: 20.7px;
 }
 
 .search-box input {
@@ -849,7 +849,7 @@ tbody tr:last-child td {
   outline: 0;
   color: #424a42;
   background: transparent;
-  font-size: 10px;
+  font-size: 11.5px;
 }
 
 .list-controls select {
@@ -859,14 +859,14 @@ tbody tr:last-child td {
   border-radius: 6px;
   color: #6a7468;
   background: #fff;
-  font-size: 10px;
+  font-size: 11.5px;
 }
 
 .month-filter {
   display: grid;
   gap: 3px;
   color: #899287;
-  font-size: 9px;
+  font-size: 10.4px;
 }
 
 .month-filter input {
@@ -876,7 +876,7 @@ tbody tr:last-child td {
   border-radius: 6px;
   color: #6a7468;
   background: #fff;
-  font-size: 10px;
+  font-size: 11.5px;
 }
 
 .export-orders-button {
@@ -912,7 +912,7 @@ tbody tr:last-child td {
   display: inline-flex;
   padding: 4px 7px;
   border-radius: 4px;
-  font-size: 9px;
+  font-size: 10.4px;
 }
 
 .withdrawal-status.active {
@@ -932,7 +932,7 @@ tbody tr:last-child td {
   border-radius: 6px;
   color: #a55442;
   background: #fff8f5;
-  font-size: 10px;
+  font-size: 11.5px;
   white-space: nowrap;
 }
 
@@ -948,27 +948,27 @@ tbody tr:last-child td {
 .cancellation-submit {
   min-height: 39px;
   padding: 0 14px;
-  font-size: 12px;
+  font-size: 13.8px;
   font-weight: 600;
 }
 
 .muted-cell {
   color: #a5aaa3;
-  font-size: 10px;
+  font-size: 11.5px;
 }
 
 .order-number {
   display: block;
   margin-bottom: 5px;
   color: #788579;
-  font-size: 9px;
+  font-size: 10.4px;
   font-weight: 500;
 }
 
 .course-cell {
   margin-top: 5px;
   color: #434b44;
-  font-size: 10px;
+  font-size: 11.5px;
 }
 
 .attendance-total {
@@ -983,12 +983,12 @@ tbody tr:last-child td {
 
 .attendance-total strong {
   color: #4e6d4e;
-  font-size: 17px;
+  font-size: 19.5px;
 }
 
 .attendance-total span {
   color: #8c958a;
-  font-size: 10px;
+  font-size: 11.5px;
 }
 
 .attendance-layout {
@@ -1012,7 +1012,7 @@ tbody tr:last-child td {
   border-radius: 5px;
   color: #7b8977;
   background: #f3f6f1;
-  font-size: 9px;
+  font-size: 10.4px;
   letter-spacing: 0.06em;
   white-space: nowrap;
 }
@@ -1021,7 +1021,7 @@ tbody tr:last-child td {
   display: grid;
   gap: 7px;
   color: #535d53;
-  font-size: 11px;
+  font-size: 12.6px;
   font-weight: 600;
 }
 
@@ -1046,7 +1046,7 @@ tbody tr:last-child td {
   outline: 0;
   color: #424a42;
   background: #fff;
-  font-size: 11px;
+  font-size: 12.6px;
   font-weight: 400;
 }
 
@@ -1063,7 +1063,7 @@ tbody tr:last-child td {
 
 .field-help {
   color: #9aa198;
-  font-size: 9px;
+  font-size: 10.4px;
   font-weight: 400;
   line-height: 1.6;
 }
@@ -1077,7 +1077,7 @@ tbody tr:last-child td {
   border-radius: 6px;
   color: #5c795b;
   background: #f0f5ee;
-  font-size: 10px;
+  font-size: 11.5px;
 }
 
 .form-actions {
@@ -1092,7 +1092,7 @@ tbody tr:last-child td {
 
 .form-actions > span {
   color: #9aa198;
-  font-size: 9px;
+  font-size: 10.4px;
 }
 
 .attendance-side {
@@ -1114,7 +1114,7 @@ tbody tr:last-child td {
   color: #668067;
   background: #eff4ed;
   font-family: serif;
-  font-size: 13px;
+  font-size: 15.0px;
 }
 
 .rule-card h3,
@@ -1122,7 +1122,7 @@ tbody tr:last-child td {
   margin: 0;
   color: #3d463e;
   font-family: 'Noto Serif SC', serif;
-  font-size: 13px;
+  font-size: 15.0px;
   font-weight: 600;
 }
 
@@ -1132,7 +1132,7 @@ tbody tr:last-child td {
   margin: 13px 0 0;
   padding-left: 16px;
   color: #848d83;
-  font-size: 10px;
+  font-size: 11.5px;
   line-height: 1.6;
 }
 
@@ -1140,12 +1140,84 @@ tbody tr:last-child td {
   min-height: 206px;
 }
 
+.schedule-summary-card {
+  display: grid;
+  width: 100%;
+  gap: 12px;
+  padding: 15px 18px;
+  border: 1px solid #e9ece7;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  transition: border-color 150ms ease, box-shadow 150ms ease, transform 150ms ease;
+}
+
+.schedule-summary-card:hover {
+  transform: translateY(-1px);
+  border-color: #cfdbca;
+  box-shadow: 0 5px 16px rgba(35, 50, 37, 0.06);
+}
+
+.schedule-summary-heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.schedule-summary-icon {
+  display: grid;
+  width: 31px;
+  height: 31px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 8px;
+  color: #668067;
+  background: #eff4ed;
+  font-size: 17.3px;
+}
+
+.schedule-summary-heading > span:nth-child(2) {
+  display: grid;
+  gap: 4px;
+}
+
+.schedule-summary-heading strong {
+  color: #3d463e;
+  font-family: 'Noto Serif SC', serif;
+  font-size: 13.8px;
+  font-weight: 600;
+}
+
+.schedule-summary-heading small,
+.schedule-summary-hint {
+  color: #99a097;
+  font-size: 10.4px;
+}
+
+.schedule-summary-heading > b {
+  margin-left: auto;
+  color: #a2a99f;
+  font-size: 16.1px;
+  font-weight: 400;
+}
+
+.schedule-summary-count {
+  color: #5f795f;
+  font-size: 26.5px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.schedule-summary-hint {
+  margin-top: -6px;
+}
+
 .result-card .panel-heading {
   padding: 16px 17px 12px;
 }
 
 .result-card .panel-heading p {
-  font-size: 9px;
+  font-size: 10.4px;
 }
 
 .result-empty {
@@ -1154,7 +1226,7 @@ tbody tr:last-child td {
   place-items: center;
   padding: 16px;
   color: #a2a8a0;
-  font-size: 10px;
+  font-size: 11.5px;
   text-align: center;
 }
 
@@ -1182,7 +1254,7 @@ tbody tr:last-child td {
   flex: 0 0 auto;
   place-items: center;
   border-radius: 50%;
-  font-size: 10px;
+  font-size: 11.5px;
 }
 
 .result-list li.matched > span {
@@ -1202,12 +1274,12 @@ tbody tr:last-child td {
 
 .result-list strong {
   color: #525b52;
-  font-size: 10px;
+  font-size: 11.5px;
 }
 
 .result-list small {
   color: #939b92;
-  font-size: 9px;
+  font-size: 10.4px;
   line-height: 1.5;
 }
 
@@ -1222,7 +1294,7 @@ tbody tr:last-child td {
 
 .consumed-tag {
   color: #658164;
-  font-size: 10px;
+  font-size: 11.5px;
   font-weight: 600;
 }
 
@@ -1232,7 +1304,230 @@ tbody tr:last-child td {
   place-items: center;
   border-top: 1px solid #f0f2ef;
   color: #a2a8a0;
-  font-size: 10px;
+  font-size: 11.5px;
+}
+
+.schedule-panel {
+  margin-top: 16px;
+}
+
+.schedule-heading {
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.schedule-controls {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.schedule-controls .count-label {
+  margin-bottom: 2px;
+}
+
+.schedule-wrap {
+  border-top: 1px solid #eef1ed;
+}
+
+.schedule-table {
+  width: 100%;
+  min-width: 640px;
+  border-collapse: collapse;
+}
+
+.schedule-table th,
+.schedule-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid #f0f2ef;
+  border-right: 1px solid #f4f6f3;
+  vertical-align: middle;
+  text-align: left;
+}
+
+.schedule-table thead th {
+  position: sticky;
+  top: 0;
+  background: #fafbf9;
+  color: #6d786c;
+  font-size: 11.5px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.schedule-table tbody td {
+  min-width: 118px;
+  height: 56px;
+}
+
+.schedule-table tbody tr:last-child th,
+.schedule-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.schedule-time-column {
+  width: 110px;
+  color: #7c877a;
+  font-size: 15.0px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.schedule-time-column strong {
+  display: block;
+  color: #59645a;
+  font-size: 12.6px;
+  font-weight: 600;
+}
+
+.schedule-time-column small {
+  color: #a1a9a0;
+  font-size: 10.4px;
+}
+
+.schedule-course {
+  display: grid;
+  width: 100%;
+  gap: 3px;
+  padding: 6px 8px;
+  border: 1px solid #dce7d8;
+  border-radius: 6px;
+  color: #48614a;
+  background: #f2f7f0;
+  text-align: left;
+}
+
+.schedule-course + .schedule-course {
+  margin-top: 5px;
+}
+
+.schedule-course:hover {
+  border-color: #c4d8bf;
+  background: #eaf2e7;
+}
+
+.schedule-course strong {
+  font-size: 11.5px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.schedule-course small {
+  color: #86937f;
+  font-size: 10.4px;
+}
+
+.schedule-empty {
+  color: #dde2da;
+  font-size: 12.6px;
+}
+
+.schedule-note {
+  margin: 0;
+  padding: 10px 20px 15px;
+  color: #9aa198;
+  font-size: 10.4px;
+  line-height: 1.7;
+}
+
+.schedule-modal {
+  width: min(100%, 430px);
+  max-height: min(90vh, 680px);
+  overflow-y: auto;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: 13px;
+  background: #fff;
+  box-shadow: 0 20px 65px rgba(25, 39, 27, 0.2);
+}
+
+.schedule-overview-modal {
+  display: flex;
+  width: min(100%, 1120px);
+  max-height: min(92vh, 900px);
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.schedule-overview-modal .modal-heading {
+  flex: 0 0 auto;
+}
+
+.schedule-overview-body {
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.schedule-overview-body .schedule-wrap {
+  max-height: min(68vh, 650px);
+  overflow: auto;
+}
+
+.schedule-overview-body .schedule-note {
+  overflow-wrap: anywhere;
+}
+
+.schedule-customer-list {
+  display: grid;
+  max-height: 320px;
+  margin: 0;
+  padding: 6px 25px 4px;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.schedule-customer-list li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 0;
+  border-bottom: 1px solid #f2f4f1;
+}
+
+.schedule-customer-list li:last-child {
+  border-bottom: 0;
+}
+
+.schedule-customer-index {
+  display: grid;
+  width: 22px;
+  height: 22px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 50%;
+  color: #5f7a5e;
+  background: #eef4ec;
+  font-size: 10.4px;
+}
+
+.schedule-customer-list li > div {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+
+.schedule-customer-list strong {
+  color: #4d564e;
+  font-size: 12.6px;
+}
+
+.schedule-customer-list small {
+  color: #99a097;
+  font-size: 10.4px;
+}
+
+.schedule-customer-time {
+  margin-left: auto;
+  color: #7f8c7c;
+  font-size: 10.4px;
+  white-space: nowrap;
+}
+
+.schedule-modal .modal-footer {
+  margin: 0;
+  padding: 13px 25px 18px;
 }
 
 .report-actions {
@@ -1245,7 +1540,7 @@ tbody tr:last-child td {
   display: grid;
   gap: 5px;
   color: #7d877b;
-  font-size: 9px;
+  font-size: 10.4px;
 }
 
 .date-picker input {
@@ -1255,7 +1550,7 @@ tbody tr:last-child td {
   border-radius: 7px;
   color: #556052;
   background: #fff;
-  font-size: 10px;
+  font-size: 11.5px;
 }
 
 .report-metrics {
@@ -1275,12 +1570,12 @@ tbody tr:last-child td {
 
 .report-metric > span {
   color: #8b938a;
-  font-size: 10px;
+  font-size: 11.5px;
 }
 
 .report-metric strong {
   color: #39443a;
-  font-size: 19px;
+  font-size: 21.8px;
   font-weight: 600;
 }
 
@@ -1297,7 +1592,7 @@ tbody tr:last-child td {
 
 .unlimited {
   color: #68816a;
-  font-size: 10px;
+  font-size: 11.5px;
 }
 
 .report-footnote {
@@ -1308,7 +1603,7 @@ tbody tr:last-child td {
   border-radius: 6px;
   color: #879084;
   background: #f7f9f5;
-  font-size: 9px;
+  font-size: 10.4px;
 }
 
 .modal-backdrop {
@@ -1349,12 +1644,12 @@ tbody tr:last-child td {
   justify-content: space-between;
   padding: 15px 25px 9px;
   color: #697367;
-  font-size: 11px;
+  font-size: 12.6px;
 }
 
 .store-list-heading > span {
   color: #9aa198;
-  font-size: 9px;
+  font-size: 10.4px;
 }
 
 .store-list {
@@ -1421,7 +1716,7 @@ tbody tr:last-child td {
 
 .store-option strong {
   overflow: hidden;
-  font-size: 11px;
+  font-size: 12.6px;
   font-weight: 600;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1429,13 +1724,13 @@ tbody tr:last-child td {
 
 .store-option small {
   color: #9ba199;
-  font-size: 9px;
+  font-size: 10.4px;
 }
 
 .store-option-check {
   margin-left: auto;
   color: #6a8667;
-  font-size: 13px;
+  font-size: 15.0px;
 }
 
 .store-rename-button {
@@ -1444,7 +1739,7 @@ tbody tr:last-child td {
   border-radius: 5px;
   color: #6a8067;
   background: transparent;
-  font-size: 9px;
+  font-size: 10.4px;
   white-space: nowrap;
 }
 
@@ -1471,7 +1766,7 @@ tbody tr:last-child td {
 .store-rename-actions .button-secondary {
   min-height: 30px;
   padding: 0 12px;
-  font-size: 10px;
+  font-size: 11.5px;
 }
 
 .store-create {
@@ -1499,14 +1794,14 @@ tbody tr:last-child td {
   margin: 0;
   color: #313a32;
   font-family: 'Noto Serif SC', serif;
-  font-size: 20px;
+  font-size: 23.0px;
   font-weight: 600;
 }
 
 .modal-heading p {
   margin: 7px 0 0;
   color: #959d94;
-  font-size: 10px;
+  font-size: 11.5px;
 }
 
 .close-button {
@@ -1516,7 +1811,7 @@ tbody tr:last-child td {
   border-radius: 6px;
   color: #858e84;
   background: #f5f7f4;
-  font-size: 20px;
+  font-size: 23.0px;
 }
 
 .order-modal form {
@@ -1549,7 +1844,7 @@ tbody tr:last-child td {
 .package-items-heading > strong,
 .package-item-heading > strong {
   color: #535d53;
-  font-size: 11px;
+  font-size: 12.6px;
 }
 
 .package-item {
@@ -1575,7 +1870,7 @@ tbody tr:last-child td {
 .radio-field legend {
   margin-bottom: 7px;
   color: #535d53;
-  font-size: 11px;
+  font-size: 12.6px;
   font-weight: 600;
 }
 
@@ -1591,7 +1886,7 @@ tbody tr:last-child td {
   align-items: center;
   gap: 6px;
   color: #535d53;
-  font-size: 11px;
+  font-size: 12.6px;
   font-weight: 400;
 }
 
@@ -1618,13 +1913,13 @@ tbody tr:last-child td {
   border-radius: 6px;
   color: #82907d;
   background: #f8faf7;
-  font-size: 10px;
+  font-size: 11.5px;
   line-height: 1.5;
 }
 
 .month-note > span:first-child {
   color: #71876d;
-  font-size: 15px;
+  font-size: 17.3px;
 }
 
 .form-error {
@@ -1633,7 +1928,7 @@ tbody tr:last-child td {
   border-radius: 6px;
   color: #a15947;
   background: #fff4ef;
-  font-size: 10px;
+  font-size: 11.5px;
 }
 
 .modal-footer {
@@ -1648,7 +1943,7 @@ tbody tr:last-child td {
 
 .modal-footer > span {
   color: #969e94;
-  font-size: 9px;
+  font-size: 10.4px;
 }
 
 .modal-footer > div {
@@ -1705,7 +2000,7 @@ tbody tr:last-child td {
     width: 32px;
     height: 32px;
     border-radius: 9px;
-    font-size: 15px;
+    font-size: 17.3px;
   }
 
   .brand-copy {
@@ -1715,7 +2010,7 @@ tbody tr:last-child td {
   }
 
   .brand-copy strong {
-    font-size: 14px;
+    font-size: 16.1px;
   }
 
   .side-label {
@@ -1753,13 +2048,13 @@ tbody tr:last-child td {
     justify-content: center;
     gap: 6px;
     padding: 0 9px;
-    font-size: 11px;
+    font-size: 12.6px;
     white-space: nowrap;
   }
 
   .nav-icon {
     width: auto;
-    font-size: 13px;
+    font-size: 15.0px;
   }
 
   .nav-count {
@@ -1823,7 +2118,7 @@ tbody tr:last-child td {
   }
 
   .page-intro h1 {
-    font-size: 23px;
+    font-size: 26.5px;
   }
 
   .metric-grid {
@@ -1836,7 +2131,7 @@ tbody tr:last-child td {
   }
 
   .metric-top {
-    font-size: 10px;
+    font-size: 11.5px;
   }
 
   .metric-icon {
@@ -1845,7 +2140,7 @@ tbody tr:last-child td {
   }
 
   .metric-card > strong {
-    font-size: 21px;
+    font-size: 24.2px;
   }
 
   .panel-heading {
@@ -1908,11 +2203,11 @@ tbody tr:last-child td {
   }
 
   .report-metric strong {
-    font-size: 17px;
+    font-size: 19.5px;
   }
 
   .app-footer {
-    font-size: 8px;
+    font-size: 9.2px;
   }
 
   .modal-backdrop {
@@ -1922,6 +2217,14 @@ tbody tr:last-child td {
 
   .order-modal {
     max-height: calc(100vh - 24px);
+  }
+
+  .schedule-overview-modal {
+    max-height: calc(100vh - 24px);
+  }
+
+  .schedule-overview-body .schedule-wrap {
+    max-height: 65vh;
   }
 
   .modal-heading {

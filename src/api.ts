@@ -67,6 +67,32 @@ export type AttendanceResult = {
   detail: string
 }
 
+export type ScheduleCustomer = {
+  customer: string
+  phone: string
+  orderNo: string
+  time: string
+}
+
+export type ScheduleCourse = {
+  courseName: string
+  customers: ScheduleCustomer[]
+}
+
+export type ScheduleCell = {
+  teacher: string
+  hour: string
+  courses: ScheduleCourse[]
+}
+
+export type AttendanceSchedule = {
+  date: string
+  hours: string[]
+  teachers: string[]
+  cells: ScheduleCell[]
+  unscheduled: (ScheduleCustomer & { teacher: string; courseName: string })[]
+}
+
 export type SummaryRow = {
   customer: string
   phone: string
@@ -290,6 +316,26 @@ export async function createAttendance(input: {
     method: 'POST',
     body: JSON.stringify(input),
   })
+}
+
+export async function getAttendanceSchedule(date: string) {
+  const params = new URLSearchParams({ date })
+  const response = await request<unknown>(`/api/attendance/schedule?${params.toString()}`)
+  if (
+    typeof response !== 'object' ||
+    response === null ||
+    !('hours' in response) ||
+    !Array.isArray(response.hours) ||
+    !('teachers' in response) ||
+    !Array.isArray(response.teachers) ||
+    !('cells' in response) ||
+    !Array.isArray(response.cells) ||
+    !('unscheduled' in response) ||
+    !Array.isArray(response.unscheduled)
+  ) {
+    throw new Error('后端接口 /api/attendance/schedule 响应格式无效。')
+  }
+  return response as AttendanceSchedule
 }
 
 export async function getReport(cutoffDate: string, startDate?: string) {
