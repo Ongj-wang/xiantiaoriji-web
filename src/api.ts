@@ -58,6 +58,7 @@ export type Attendance = {
   courseName: string
   orderNo: string
   date: string
+  teacher: string
 }
 
 export type AttendanceResult = {
@@ -108,7 +109,19 @@ export type CreateOrder = {
   endDate: string | null
 }
 
+export type Store = {
+  id: string
+  name: string
+}
+
 const apiBaseUrl = import.meta.env.VITE_API_BASE_URL?.replace(/\/$/, '') ?? ''
+
+let selectedStoreId = ''
+
+export function setSelectedStoreId(storeId: string) {
+  selectedStoreId = storeId
+  window.localStorage.setItem('selectedStoreId', storeId)
+}
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`${apiBaseUrl}${path}`, {
@@ -116,6 +129,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     headers: {
       Accept: 'application/json',
       ...(init?.body ? { 'Content-Type': 'application/json' } : {}),
+      ...(selectedStoreId ? { 'X-Store-Id': selectedStoreId } : {}),
       ...init?.headers,
     },
   })
@@ -140,6 +154,43 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
     throw new Error(`后端接口 ${path} 未返回 JSON 数据。`)
   }
   return payload as T
+}
+
+export async function getStores() {
+  const response = await request<unknown>('/api/stores')
+  if (
+    typeof response !== 'object' ||
+    response === null ||
+    !('stores' in response) ||
+    !Array.isArray(response.stores) ||
+    response.stores.some((store) =>
+      typeof store !== 'object' ||
+      store === null ||
+      !('id' in store) ||
+      typeof store.id !== 'string' ||
+      !('name' in store) ||
+      typeof store.name !== 'string',
+    )
+  ) {
+    throw new Error('后端接口 /api/stores 响应格式无效，应返回 { "stores": [] }。')
+  }
+  return response.stores as Store[]
+}
+
+export async function createStore(name: string) {
+  const response = await request<{ store: Store }>('/api/stores', {
+    method: 'POST',
+    body: JSON.stringify({ name }),
+  })
+  return response.store
+}
+
+export async function updateStore(storeId: string, name: string) {
+  const response = await request<{ store: Store }>('/api/stores/rename', {
+    method: 'POST',
+    body: JSON.stringify({ id: storeId, name }),
+  })
+  return response.store
 }
 
 export async function getOrders() {
@@ -195,7 +246,10 @@ export async function exportOrders(filters: {
 
   const path = `/api/orders/export?${params.toString()}`
   const response = await fetch(`${apiBaseUrl}${path}`, {
-    headers: { Accept: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' },
+    headers: {
+      Accept: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      ...(selectedStoreId ? { 'X-Store-Id': selectedStoreId } : {}),
+    },
   })
   if (!response.ok) {
     const payload: unknown = await response.json().catch(() => undefined)
@@ -229,6 +283,7 @@ export async function getAttendances() {
 export async function createAttendance(input: {
   courseName: string
   date: string
+  teacher: string
   customers: string[]
 }) {
   return request<{ results: AttendanceResult[] }>('/api/attendance', {

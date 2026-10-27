@@ -208,11 +208,25 @@ button:disabled {
 }
 
 .profile {
+  border-top: 1px solid #edf0eb;
+  padding-top: 10px;
+}
+
+.profile-button {
   display: flex;
+  width: 100%;
   align-items: center;
   gap: 10px;
-  padding: 14px 4px 2px;
-  border-top: 1px solid #edf0eb;
+  padding: 3px 4px;
+  border: 0;
+  border-radius: 7px;
+  color: inherit;
+  background: transparent;
+  text-align: left;
+}
+
+.profile-button:hover {
+  background: #f7f8f6;
 }
 
 .avatar {
@@ -1319,6 +1333,160 @@ tbody tr:last-child td {
   box-shadow: 0 20px 65px rgba(25, 39, 27, 0.2);
 }
 
+.store-modal {
+  width: min(100%, 460px);
+  max-height: min(90vh, 700px);
+  overflow-y: auto;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: 13px;
+  background: #fff;
+  box-shadow: 0 20px 65px rgba(25, 39, 27, 0.2);
+}
+
+.store-list-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 15px 25px 9px;
+  color: #697367;
+  font-size: 11px;
+}
+
+.store-list-heading > span {
+  color: #9aa198;
+  font-size: 9px;
+}
+
+.store-list {
+  display: grid;
+  max-height: 260px;
+  gap: 7px;
+  margin: 0;
+  padding: 0 25px 14px;
+  overflow-y: auto;
+  list-style: none;
+}
+
+.store-list-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 6px;
+}
+
+.store-list-item.editing {
+  grid-template-columns: minmax(0, 1fr);
+  padding: 10px;
+  border: 1px solid #dce7d8;
+  border-radius: 8px;
+  background: #f8faf7;
+}
+
+.store-option {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid #edf0eb;
+  border-radius: 8px;
+  color: #515b50;
+  background: #fff;
+  text-align: left;
+}
+
+.store-option:hover,
+.store-option.selected {
+  border-color: #dce7d8;
+  background: #f5f8f3;
+}
+
+.store-option-avatar {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 9px;
+  color: #587059;
+  background: #edf2eb;
+  font-family: 'Noto Serif SC', serif;
+}
+
+.store-option > span:nth-child(2) {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
+}
+
+.store-option strong {
+  overflow: hidden;
+  font-size: 11px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.store-option small {
+  color: #9ba199;
+  font-size: 9px;
+}
+
+.store-option-check {
+  margin-left: auto;
+  color: #6a8667;
+  font-size: 13px;
+}
+
+.store-rename-button {
+  padding: 7px 5px;
+  border: 0;
+  border-radius: 5px;
+  color: #6a8067;
+  background: transparent;
+  font-size: 9px;
+  white-space: nowrap;
+}
+
+.store-rename-button:hover {
+  background: #f0f4ee;
+}
+
+.store-rename-form {
+  display: grid;
+  gap: 10px;
+}
+
+.store-rename-form .field {
+  gap: 6px;
+}
+
+.store-rename-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 7px;
+}
+
+.store-rename-actions .button-primary,
+.store-rename-actions .button-secondary {
+  min-height: 30px;
+  padding: 0 12px;
+  font-size: 10px;
+}
+
+.store-create {
+  padding: 0 25px;
+  border-top: 1px solid #edf0eb;
+}
+
+.store-create .field {
+  margin-top: 15px;
+}
+
+.store-create .modal-footer {
+  margin-top: 14px;
+}
+
 .modal-heading {
   display: flex;
   justify-content: space-between;
@@ -1550,9 +1718,27 @@ tbody tr:last-child td {
     font-size: 14px;
   }
 
-  .side-label,
-  .sidebar-bottom {
+  .side-label {
     display: none;
+  }
+
+  .sidebar-bottom {
+    display: block;
+    margin-top: 7px;
+  }
+
+  .mode-card {
+    display: none;
+  }
+
+  .profile {
+    padding-top: 5px;
+    border-top: 0;
+  }
+
+  .profile-button {
+    width: auto;
+    padding: 3px 2px;
   }
 
   .main-nav {

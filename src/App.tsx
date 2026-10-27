@@ -1,13 +1,16 @@
 import { computed, defineComponent, onMounted, ref } from 'vue'
 import {
   createAttendance,
+  createStore as postStore,
   cancelOrder as postCancellation,
   createOrder as postOrder,
   exportOrders as downloadOrders,
+  getStores,
   getPrivateCourses,
   getOrders,
   getReport,
   searchOrders,
+  updateStore as putStore,
   type AttendanceResult,
   type CourseType,
   type Order,
@@ -15,6 +18,8 @@ import {
   type PackageItem,
   type PaymentMethod,
   type Report,
+  type Store,
+  setSelectedStoreId,
 } from './api'
 import { createXlsx } from './xlsx'
 
@@ -26,6 +31,16 @@ function localDate(date: Date) {
   const month = String(date.getMonth() + 1).padStart(2, '0')
   const day = String(date.getDate()).padStart(2, '0')
   return `${year}-${month}-${day}`
+}
+
+function localDateTime(date: Date) {
+  return `${localDate(date)}T${localTime(date)}`
+}
+
+function localTime(date: Date) {
+  const hours = String(date.getHours()).padStart(2, '0')
+  const minutes = String(date.getMinutes()).padStart(2, '0')
+  return `${hours}:${minutes}`
 }
 
 const navItems: { id: Page; label: string; icon: string }[] = [
@@ -49,6 +64,16 @@ export default defineComponent({
     const report = ref<Report | null>(null)
     const apiError = ref('')
     const activePage = ref<Page>('overview')
+    const stores = ref<Store[]>([])
+    const activeStoreId = ref('')
+    const showStoreManager = ref(false)
+    const newStoreName = ref('')
+    const editingStoreId = ref('')
+    const editingStoreName = ref('')
+    const storeError = ref('')
+    const loadingStores = ref(false)
+    const creatingStore = ref(false)
+    const switchingStore = ref(false)
     const showOrderForm = ref(false)
     const orderSearch = ref('')
     const orderTypeFilter = ref<'all' | OrderType>('all')
@@ -62,7 +87,8 @@ export default defineComponent({
     const submittingOrder = ref(false)
     const submittingAttendance = ref(false)
     const attendanceCourse = ref('')
-    const attendanceDate = ref(today)
+    const attendanceDateTime = ref(localDateTime(new Date()))
+    const attendanceTeacher = ref('')
     const attendanceNames = ref('')
     const attendanceResults = ref<AttendanceResult[]>([])
     const withdrawalSearch = ref('')
@@ -125,6 +151,7 @@ export default defineComponent({
     const summaryRows = computed(() => report.value?.summaryRows ?? [])
     const reportAttendances = computed(() => report.value?.attendances ?? [])
     const metrics = computed(() => report.value)
+    const activeStore = computed(() => stores.value.find((store) => store.id === activeStoreId.value))
     const packageTotal = computed(() => Number(orderDraft.value.packageItems
       .reduce((total, item) => total + (Number.isFinite(item.amount) ? item.amount : 0), 0)
       .toFixed(2)))
@@ -310,6 +337,98 @@ export default defineComponent({
       }
     }
 
+    async function loadStores() {
+      loadingStores.value = true
+      storeError.value = ''
+      try {
+        stores.value = await getStores()
+        const savedStoreId = window.localStorage.getItem('selectedStoreId')
+        const selectedStore = stores.value.find((store) => store.id === savedStoreId) ?? stores.value[0]
+        if (!selectedStore) {
+          throw new Error('后端尚未配置任何门店。')
+        }
+        activeStoreId.value = selectedStore.id
+        setSelectedStoreId(selectedStore.id)
+        await loadOverview()
+      } catch (error) {
+        console.error('加载门店信息失败。', error)
+        storeError.value = error instanceof Error ? error.message : '加载门店信息失败。'
+      } finally {
+        loadingStores.value = false
+      }
+    }
+
+    async function switchStore(store: Store) {
+      if (store.id === activeStoreId.value || switchingStore.value) return
+      switchingStore.value = true
+      activeStoreId.value = store.id
+      setSelectedStoreId(store.id)
+      stores.value = [...stores.value]
+      orders.value = []
+      report.value = null
+      privateCourses.value = []
+      withdrawalResults.value = []
+      attendanceResults.value = []
+      apiError.value = ''
+      withdrawalError.value = ''
+      showStoreManager.value = false
+      try {
+        await navigate(activePage.value)
+      } finally {
+        switchingStore.value = false
+      }
+    }
+
+    async function createStore(event: SubmitEvent) {
+      event.preventDefault()
+      const name = newStoreName.value.trim()
+      if (!name) {
+        storeError.value = '请输入门店名称。'
+        return
+      }
+      creatingStore.value = true
+      storeError.value = ''
+      try {
+        const store = await postStore(name)
+        stores.value = [...stores.value, store]
+        newStoreName.value = ''
+        await switchStore(store)
+      } catch (error) {
+        console.error('创建门店失败。', error)
+        storeError.value = error instanceof Error ? error.message : '创建门店失败。'
+      } finally {
+        creatingStore.value = false
+      }
+    }
+
+    function startEditingStore(store: Store) {
+      editingStoreId.value = store.id
+      editingStoreName.value = store.name
+      storeError.value = ''
+    }
+
+    async function saveStoreName(event: SubmitEvent) {
+      event.preventDefault()
+      const name = editingStoreName.value.trim()
+      if (!name) {
+        storeError.value = '门店名称不能为空。'
+        return
+      }
+      creatingStore.value = true
+      storeError.value = ''
+      try {
+        const store = await putStore(editingStoreId.value, name)
+        stores.value = stores.value.map((item) => item.id === store.id ? store : item)
+        editingStoreId.value = ''
+        editingStoreName.value = ''
+      } catch (error) {
+        console.error('修改门店名称失败。', error)
+        storeError.value = error instanceof Error ? error.message : '修改门店名称失败。'
+      } finally {
+        creatingStore.value = false
+      }
+    }
+
     async function navigate(page: Page) {
       activePage.value = page
       if (page === 'overview') await loadOverview()
@@ -319,7 +438,7 @@ export default defineComponent({
     }
 
     onMounted(() => {
-      void loadOverview()
+      void loadStores()
     })
 
     async function createOrder(event: SubmitEvent) {
@@ -467,7 +586,8 @@ export default defineComponent({
       try {
         const response = await createAttendance({
           courseName: attendanceCourse.value,
-          date: attendanceDate.value,
+          date: attendanceDateTime.value.replace('T', ' '),
+          teacher: attendanceTeacher.value.trim(),
           customers: names,
         })
         attendanceResults.value = response.results
@@ -506,9 +626,10 @@ export default defineComponent({
           ]),
         ]
         const attendanceRowsForExport = [
-          ['上课日期', '客户姓名', '手机号', '课程项目', '关联订单号'],
+          ['上课日期', '授课老师', '客户姓名', '手机号', '课程项目', '关联订单号'],
           ...reportAttendances.value.map((attendance) => [
             attendance.date,
+            attendance.teacher,
             attendance.customer,
             attendance.phone,
             attendance.courseName,
@@ -572,9 +693,16 @@ export default defineComponent({
               <div><strong>服务端数据模式</strong><small>订单与签到由后端读写</small></div>
             </div>
             <div class="profile">
-              <div class="avatar">管</div>
-              <div class="profile-copy"><strong>门店管理</strong><small>台账管理员</small></div>
-              <span class="profile-more">···</span>
+              <button
+                type="button"
+                class="profile-button"
+                aria-haspopup="dialog"
+                onClick={() => { storeError.value = ''; showStoreManager.value = true }}
+              >
+                <span class="avatar">{activeStore.value?.name.slice(0, 1) ?? '店'}</span>
+                <span class="profile-copy"><strong>{activeStore.value?.name ?? (loadingStores.value ? '正在加载门店…' : '门店管理')}</strong><small>切换 / 新增门店</small></span>
+                <span class="profile-more">···</span>
+              </button>
             </div>
           </div>
         </aside>
@@ -751,7 +879,8 @@ export default defineComponent({
                       </select>
                       {!privateCourses.value.length && <small class="field-help">后端暂未返回定制私教课程，请确认是否已有私教订单及接口状态。</small>}
                     </label>
-                    <label class="field"><span>上课日期 <b>*</b></span><input type="date" required value={attendanceDate.value} onInput={(event) => { attendanceDate.value = (event.target as HTMLInputElement).value; attendanceResults.value = [] }} /></label>
+                    <label class="field"><span>上课日期和时间 <b>*</b></span><input type="datetime-local" required value={attendanceDateTime.value} onInput={(event) => { attendanceDateTime.value = (event.target as HTMLInputElement).value; attendanceResults.value = [] }} /></label>
+                    <label class="field"><span>授课老师 <b>*</b></span><input required maxlength={40} value={attendanceTeacher.value} onInput={(event) => { attendanceTeacher.value = (event.target as HTMLInputElement).value; attendanceResults.value = [] }} placeholder="请输入授课老师姓名" /></label>
                     <label class="field"><span>上课客户姓名 <b>*</b></span>
                       <textarea required rows={7} value={attendanceNames.value} onInput={(event) => { attendanceNames.value = (event.target as HTMLTextAreaElement).value }} placeholder={'每行一位客户姓名\n例如：\n林晓\n陈可'} />
                       <small class="field-help">系统按客户姓名和课程项目，优先关联最近登记且仍有剩余课时的私教订单。</small>
@@ -908,6 +1037,56 @@ export default defineComponent({
                 </div>
                 {orderFormError.value && <div class="form-error" role="alert">{orderFormError.value}</div>}
                 <div class="modal-footer"><span><b>*</b> 为必填项。订单号由后端生成并保存。</span><div><button type="button" class="button-secondary" onClick={() => { showOrderForm.value = false }}>取消</button><button type="submit" class="button-primary" disabled={submittingOrder.value}>{submittingOrder.value ? '正在提交…' : <>确认登记 <span>→</span></>}</button></div></div>
+              </form>
+            </section>
+          </div>
+        )}
+        {showStoreManager.value && (
+          <div class="modal-backdrop" onClick={(event) => { if (event.target === event.currentTarget) showStoreManager.value = false }}>
+            <section class="store-modal" role="dialog" aria-modal="true" aria-labelledby="store-modal-title">
+              <div class="modal-heading">
+                <div><div class="eyebrow">STORE MANAGEMENT</div><h2 id="store-modal-title">门店管理</h2><p>每个门店使用独立账本，订单、消课及报表互不影响。</p></div>
+                <button class="close-button" type="button" aria-label="关闭" onClick={() => { showStoreManager.value = false }}>×</button>
+              </div>
+              <div class="store-list-heading"><strong>选择门店</strong><span>{stores.value.length} 家</span></div>
+              {loadingStores.value ? <div class="history-empty">正在加载门店…</div> : (
+                <ul class="store-list">
+                  {stores.value.map((store) => editingStoreId.value === store.id ? (
+                    <li class="store-list-item editing" key={store.id}>
+                      <form class="store-rename-form" onSubmit={saveStoreName}>
+                        <label class="field"><span>修改门店名称</span><input autofocus required maxlength={40} value={editingStoreName.value} onInput={(event) => { editingStoreName.value = (event.target as HTMLInputElement).value }} /></label>
+                        <div class="store-rename-actions">
+                          <button type="button" class="button-secondary" disabled={creatingStore.value} onClick={() => { editingStoreId.value = ''; storeError.value = '' }}>取消</button>
+                          <button type="submit" class="button-primary" disabled={creatingStore.value}>{creatingStore.value ? '正在保存…' : '保存'}</button>
+                        </div>
+                      </form>
+                    </li>
+                  ) : (
+                    <li class="store-list-item" key={store.id}>
+                      <button
+                        type="button"
+                        class={['store-option', store.id === activeStoreId.value && 'selected']}
+                        disabled={switchingStore.value || creatingStore.value}
+                        onClick={() => { void switchStore(store) }}
+                      >
+                        <span class="store-option-avatar">{store.name.slice(0, 1)}</span>
+                        <span><strong>{store.name}</strong><small>{store.id === activeStoreId.value ? '当前账本' : '点击切换到此门店'}</small></span>
+                        <span class="store-option-check">{store.id === activeStoreId.value ? '✓' : '→'}</span>
+                      </button>
+                      <button
+                        type="button"
+                        class="store-rename-button"
+                        disabled={creatingStore.value || switchingStore.value}
+                        onClick={() => { startEditingStore(store) }}
+                      >修改名称</button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              <form class="store-create" onSubmit={createStore}>
+                <label class="field"><span>新增门店</span><input maxlength={40} value={newStoreName.value} onInput={(event) => { newStoreName.value = (event.target as HTMLInputElement).value }} placeholder="输入门店名称，例如：城西店" /></label>
+                {storeError.value && <div class="form-error" role="alert">{storeError.value}</div>}
+                <div class="modal-footer"><span>新门店将创建空白账本。</span><div><button type="submit" class="button-primary" disabled={creatingStore.value || switchingStore.value}>{creatingStore.value ? '正在创建…' : '＋ 创建门店'}</button></div></div>
               </form>
             </section>
           </div>
